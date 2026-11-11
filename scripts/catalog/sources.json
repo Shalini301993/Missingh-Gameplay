@@ -1,0 +1,170 @@
+{
+  "perCategoryCap": 140,
+  "categories": {
+    "clothing": {
+      "kind": "generic",
+      "defaults": { "vibes": ["minimalist"], "moods": ["calm"], "budget": "treat" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox clothing type\"", "limit": 300 },
+        { "cat": "Jackets", "limit": 150 },
+        { "cat": "Coats (clothing)", "limit": 150 },
+        { "cat": "Dresses", "limit": 150 },
+        { "cat": "Sweaters", "limit": 100 },
+        { "cat": "Trousers and shorts", "limit": 150 },
+        { "cat": "Skirts", "limit": 100 },
+        { "cat": "Tops (clothing)", "limit": 150 },
+        { "cat": "Robes and cloaks", "limit": 150 },
+        { "cat": "Folk costumes", "limit": 200 }
+      ]
+    },
+    "shoes": {
+      "defaults": { "vibes": ["sporty"], "moods": ["playful"], "budget": "treat" },
+      "sources": [
+        { "cat": "Shoes", "limit": 250, "kind": "generic" },
+        { "cat": "Boots", "limit": 150, "kind": "generic" },
+        { "cat": "Sandals", "limit": 100, "kind": "generic" },
+        { "cat": "Sneakers", "limit": 150 },
+        { "cat": "Nike brands", "limit": 100, "allowOrganisations": true },
+        { "cat": "Adidas", "limit": 100, "require": "shoe|sneaker|boot|trainer" },
+        { "cat": "Shoe brands", "limit": 300, "allowOrganisations": true, "require": "shoe|sneaker|boot|footwear|sandal" },
+        { "cat": "Historical footwear", "limit": 100, "kind": "generic" },
+        { "cat": "Dance shoes", "limit": 60, "kind": "generic" }
+      ]
+    },
+    "perfumes": {
+      "defaults": { "vibes": ["luxe", "romantic"], "moods": ["romantic"], "budget": "splurge" },
+      "sources": [
+        { "cat": "Perfumes", "depth": 2, "limit": 500 },
+        { "search": "hastemplate:\"Infobox perfume\"", "limit": 300 },
+        { "search": "incategory:\"Designer perfumes\"", "limit": 300 },
+        { "search": "incategory:\"Perfumes released in the 20th century\"", "limit": 200 },
+        { "cat": "Perfume ingredients", "limit": 120, "kind": "generic", "defaults": { "budget": "treat" } },
+        { "cat": "Incense material", "limit": 80, "kind": "generic", "defaults": { "budget": "everyday", "vibes": ["cosy"], "moods": ["calm"] } }
+      ]
+    },
+    "books": {
+      "require": "novel|book|novella|stories|poem|play\\b|memoir|comic|manga|fable|tale",
+      "defaults": { "vibes": ["bookish"], "moods": ["calm"], "budget": "everyday" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox book\" incategory:\"English-language novels\"", "limit": 500 },
+        { "search": "hastemplate:\"Infobox book\" incategory:\"Novels adapted into films\"", "limit": 400 },
+        { "search": "hastemplate:\"Infobox book\" children's picture book", "limit": 200, "defaults": { "vibes": ["whimsical", "bookish"], "moods": ["playful"] } },
+        { "search": "hastemplate:\"Infobox book\" science fiction novel", "limit": 200, "defaults": { "vibes": ["futuristic", "bookish"], "moods": ["adventurous"] } },
+        { "search": "hastemplate:\"Infobox book\" fantasy novel", "limit": 200, "defaults": { "vibes": ["whimsical", "bookish"], "moods": ["adventurous"] } }
+      ]
+    },
+    "bags": {
+      "defaults": { "vibes": ["minimalist"], "moods": ["calm"], "budget": "treat" },
+      "sources": [
+        { "cat": "Bags (fashion)", "depth": 1, "limit": 250 },
+        { "cat": "Bags", "depth": 1, "limit": 300, "kind": "generic" },
+        { "cat": "Luggage", "depth": 1, "limit": 200, "kind": "generic" },
+        { "cat": "Luggage brands", "limit": 100, "allowOrganisations": true },
+        { "cat": "Containers", "limit": 250, "kind": "generic", "require": "bag|basket|case|pouch|box|chest|purse" },
+        { "cat": "Basket weaving", "limit": 100, "kind": "generic" }
+      ]
+    },
+    "accessories": {
+      "kind": "generic",
+      "defaults": { "vibes": ["luxe"], "moods": ["bold"], "budget": "treat" },
+      "sources": [
+        { "cat": "Fashion accessories", "limit": 300 },
+        { "cat": "Hats", "limit": 300 },
+        { "cat": "Types of jewellery", "limit": 200 },
+        { "cat": "Necklaces", "limit": 100 },
+        { "cat": "Rings (jewellery)", "limit": 100 },
+        { "cat": "Eyewear", "depth": 1, "limit": 150 },
+        { "cat": "Scarves", "limit": 80 },
+        { "cat": "Belts (clothing)", "limit": 80 },
+        { "cat": "Gloves", "limit": 80 },
+        { "cat": "Neckties", "limit": 60 },
+        { "cat": "Individual diamonds", "limit": 150, "kind": "iconic", "defaults": { "budget": "dream" } }
+      ]
+    },
+    "watches": {
+      "defaults": { "vibes": ["luxe"], "moods": ["bold"], "budget": "splurge" },
+      "sources": [
+        { "cat": "Watch models", "depth": 1, "limit": 400 },
+        { "cat": "Rolex watches", "limit": 80 },
+        { "cat": "Omega watches", "limit": 80 },
+        { "cat": "Seiko watches", "limit": 80 },
+        { "cat": "Casio watches", "limit": 80, "defaults": { "budget": "treat", "vibes": ["retro"] } },
+        { "cat": "Smartwatches", "limit": 120, "defaults": { "vibes": ["futuristic"] } },
+        { "cat": "Watch brands", "limit": 300, "allowOrganisations": true },
+        { "cat": "Clocks", "limit": 200, "kind": "generic", "defaults": { "budget": "treat", "vibes": ["retro"], "moods": ["nostalgic"] } },
+        { "cat": "Clock designs", "limit": 100, "kind": "generic" }
+      ]
+    },
+    "toys": {
+      "defaults": { "vibes": ["whimsical"], "moods": ["playful"], "budget": "everyday" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox toy\"", "limit": 500 },
+        { "cat": "1960s toys", "limit": 150 },
+        { "cat": "1970s toys", "limit": 150 },
+        { "cat": "1980s toys", "limit": 200 },
+        { "cat": "1990s toys", "limit": 200 },
+        { "cat": "2000s toys", "limit": 150 },
+        { "cat": "Traditional toys", "limit": 150, "kind": "generic" },
+        { "cat": "Wooden toys", "limit": 100, "kind": "generic" },
+        { "cat": "Mechanical puzzles", "limit": 120 },
+        { "search": "hastemplate:\"Infobox game\" board game", "limit": 250 }
+      ]
+    },
+    "vehicles": {
+      "defaults": { "vibes": ["sporty"], "moods": ["adventurous"], "budget": "dream" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox automobile\"", "limit": 700 },
+        { "search": "hastemplate:\"Infobox motorcycle\"", "limit": 300 },
+        { "cat": "Motor scooters", "limit": 150, "defaults": { "budget": "splurge", "vibes": ["retro"] } },
+        { "cat": "Sports cars", "limit": 300 },
+        { "cat": "Cycle types", "limit": 150, "kind": "generic", "defaults": { "budget": "splurge" } },
+        { "cat": "Human-powered vehicles", "limit": 120, "kind": "generic", "defaults": { "budget": "treat" } },
+        { "cat": "Boat types", "limit": 200, "kind": "generic" }
+      ]
+    },
+    "gadgets": {
+      "defaults": { "vibes": ["futuristic"], "moods": ["bold"], "budget": "splurge" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox information appliance\"", "limit": 400 },
+        { "search": "hastemplate:\"Infobox camera\"", "limit": 300, "defaults": { "vibes": ["retro"] } },
+        { "search": "hastemplate:\"Infobox mobile phone\"", "limit": 300 },
+        { "search": "hastemplate:\"Infobox calculator\"", "limit": 100, "defaults": { "vibes": ["retro"], "budget": "treat" } },
+        { "cat": "Handheld game consoles", "limit": 150, "defaults": { "moods": ["playful"] } },
+        { "cat": "Home video game consoles", "limit": 150, "defaults": { "moods": ["playful"] } },
+        { "cat": "Portable media players", "limit": 150 },
+        { "cat": "Office equipment", "limit": 150, "kind": "generic", "defaults": { "budget": "treat" } },
+        { "cat": "Navigational equipment", "limit": 100, "kind": "generic", "defaults": { "vibes": ["rugged"], "moods": ["adventurous"] } }
+      ]
+    },
+    "home": {
+      "kind": "generic",
+      "defaults": { "vibes": ["cosy"], "moods": ["calm"], "budget": "treat" },
+      "sources": [
+        { "cat": "Chairs", "depth": 1, "limit": 300 },
+        { "cat": "Individual models of furniture", "limit": 150, "kind": "iconic", "defaults": { "budget": "splurge" } },
+        { "cat": "Furniture", "limit": 250 },
+        { "cat": "Tables (furniture)", "limit": 100 },
+        { "cat": "Light fixtures", "limit": 150 },
+        { "cat": "Types of lamp", "limit": 100 },
+        { "cat": "Teaware", "limit": 100 },
+        { "cat": "Kitchenware", "limit": 250, "defaults": { "budget": "everyday" } },
+        { "cat": "Cooking appliances", "limit": 120 },
+        { "cat": "Coffee preparation", "limit": 100, "require": "maker|pot|machine|press|brewer|grinder|device" },
+        { "cat": "Drinkware", "limit": 150, "defaults": { "budget": "everyday" } },
+        { "cat": "Decorative arts", "limit": 150 },
+        { "cat": "Blankets", "limit": 60 }
+      ]
+    },
+    "instruments": {
+      "kind": "generic",
+      "defaults": { "vibes": ["romantic"], "moods": ["playful"], "budget": "splurge" },
+      "sources": [
+        { "search": "hastemplate:\"Infobox instrument\"", "limit": 600 },
+        { "search": "hastemplate:\"Infobox guitar model\"", "limit": 250, "kind": "iconic", "defaults": { "vibes": ["retro"], "moods": ["bold"] } },
+        { "search": "hastemplate:\"Infobox synthesizer\"", "limit": 250, "kind": "iconic", "defaults": { "vibes": ["futuristic", "retro"], "moods": ["bold"] } },
+        { "cat": "Fender electric guitars", "limit": 100, "kind": "iconic" },
+        { "cat": "Gibson electric guitars", "limit": 100, "kind": "iconic" }
+      ]
+    }
+  }
+}

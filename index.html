@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Curio Capsule</title>
+  <meta name="description" content="Pull the lever and discover random objects matched to your likes, from perfumes and books to bags, toys and vehicles.">
+  <meta name="theme-color" content="#f6f3ee">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23f6f3ee' stroke='%231c1b19' stroke-width='2'/%3E%3Cpath d='M2 16a14 14 0 0 1 28 0z' fill='%23c8452c' stroke='%231c1b19' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <p class="eyebrow">A cabinet of random objects</p>
+      <h1>Curio Capsule</h1>
+    </div>
+    <nav class="masthead-nav" aria-label="Game">
+      <button type="button" class="link-button" id="open-collection">Collection <span class="count" id="collection-count">0</span></button>
+      <button type="button" class="link-button" id="open-profile">Your likes</button>
+    </nav>
+  </header>
+
+  <main class="floor">
+    <section class="machine" aria-label="Capsule machine">
+      <div id="stage" class="stage" aria-hidden="true"></div>
+      <div class="controls">
+        <p class="tokens" id="tokens" aria-live="polite"></p>
+        <button type="button" class="primary" id="pull" disabled>Loading the cabinet…</button>
+        <p class="status" id="status" role="status"></p>
+      </div>
+    </section>
+
+    <aside class="wall">
+      <section class="panel" aria-labelledby="mood-heading">
+        <h2 id="mood-heading">Today’s mood</h2>
+        <div class="chips" id="mood-chips"></div>
+      </section>
+      <section class="panel" aria-labelledby="likes-heading">
+        <h2 id="likes-heading">Your likes</h2>
+        <p class="summary" id="likes-summary"></p>
+      </section>
+      <section class="panel" aria-labelledby="recent-heading">
+        <h2 id="recent-heading">Recent finds</h2>
+        <ol class="recent" id="recent"></ol>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="colophon">
+    <p id="catalog-note"></p>
+    <p>Descriptions and images come from <a href="https://en.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> and Wikimedia Commons under their free licences. Search links leave this site. Your likes and collection are stored only in this browser.</p>
+  </footer>
+
+  <dialog id="profile-dialog" class="sheet" aria-labelledby="profile-title"></dialog>
+  <dialog id="collection-dialog" class="sheet wide" aria-labelledby="collection-title"></dialog>
+  <dialog id="card-dialog" class="sheet card-sheet" aria-labelledby="card-title"></dialog>
+
+  <noscript><p class="noscript">Curio Capsule needs JavaScript to run.</p></noscript>
+  <script src="vendor/phaser.min.js"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
