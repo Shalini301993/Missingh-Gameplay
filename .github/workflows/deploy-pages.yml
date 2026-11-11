@@ -1,0 +1,64 @@
+# Publishes the game to GitHub Pages when Settings → Pages → Source is set to "GitHub Actions".
+# If Pages is set to "Deploy from a branch" instead, GitHub publishes the repository as it is
+# (the site needs no build step), and this workflow checks the catalog and then steps aside.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Check before publishing
+        run: |
+          npm test
+          node scripts/catalog/validate.mjs
+      - name: See how Pages is set up
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          type=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type 2>/dev/null || echo off)
+          echo "type=$type" >> "$GITHUB_OUTPUT"
+          if [ "$type" = "legacy" ]; then
+            echo "::notice::Pages is set to deploy from a branch, so GitHub publishes the site itself and there is nothing to do here."
+          elif [ "$type" != "workflow" ]; then
+            echo "::notice::GitHub Pages is not switched on for this repository yet (Settings → Pages)."
+          fi
+      - name: Collect the site files
+        if: steps.pages.outputs.type == 'workflow'
+        run: |
+          mkdir -p _site/data
+          cp -r index.html styles src vendor _site/
+          cp -r data/catalog _site/data/
+      - uses: actions/configure-pages@v5
+        if: steps.pages.outputs.type == 'workflow'
+      - uses: actions/upload-pages-artifact@v4
+        if: steps.pages.outputs.type == 'workflow'
+        with:
+          path: _site
+      - id: deployment
+        if: steps.pages.outputs.type == 'workflow'
+        uses: actions/deploy-pages@v4
