@@ -46,13 +46,15 @@ The catalog lives in `data/catalog/`, one file per category. It is built from tw
 
 - **Seeds** (`data/seeds/*.json`) – about 150 hand-written, hand-tagged objects. Edit these files to
   add your own.
-- **Wikipedia** – `scripts/catalog/build.mjs` walks the Wikipedia categories and searches listed in
-  `scripts/catalog/sources.json`, keeps pages that are objects with a picture, tags them by keyword,
-  and ranks rarity by how often each page is read.
+- **Wikipedia** – `scripts/catalog/build.mjs` runs the searches listed in
+  `scripts/catalog/sources.json`, keeps pages that are objects (not people, companies or lists),
+  tags them by keyword, and takes turns across the sources so each one is represented. Within a
+  category the most-read pages become legendary and rare.
 
 The *Build catalog* workflow runs the generator and commits the result whenever the seeds or the
-generator change, or when you run it by hand from the **Actions** tab. Its run summary shows how
-many items each source produced, which is the place to look when tuning `sources.json`.
+generator change, or when you run it by hand from the **Actions** tab. Each build also writes
+`data/catalog-report.md`, which shows how many items every search found, kept and used. That is the
+place to look when tuning `sources.json`.
 
 ```bash
 node scripts/catalog/build.mjs            # seeds + Wikipedia (needs internet)
@@ -60,14 +62,47 @@ node scripts/catalog/build.mjs --offline  # seeds only
 node scripts/catalog/validate.mjs         # check the catalog files
 ```
 
-To grow a category, add a line to its `sources` list in `sources.json`:
+### Adding sources
+
+Each line in a category's `sources` list is one Wikipedia search:
 
 ```json
-{ "cat": "Wikipedia category name", "depth": 1, "limit": 200 }
-{ "search": "hastemplate:\"Infobox book\" detective novel", "limit": 200 }
+{ "template": "Infobox toy", "limit": 200 }
+{ "cats": ["Hats", "Scarves"], "limit": 100 }
+{ "deepcat": "Chairs", "limit": 150 }
+{ "template": "Infobox book", "search": "detective novel", "limit": 100 }
 ```
 
-`perCategoryCap` at the top of that file sets how many items each category may hold.
+- `template` – pages that use that infobox; `cats` – pages directly in any of those categories;
+  `deepcat` – a category and everything beneath it; `search` – extra search words.
+- `limit` – how many results to look at, most popular first.
+- Optional: `kind` (`iconic` or `generic`), `weight` (a bigger share of the category), `defaults`
+  (tags to fall back on), `require` / `drop` (patterns a page must or must not match),
+  `allowOrganisations`, `allowNoImage`.
+
+`perCategoryCap` at the top of the file sets how many items each category may hold.
+
+To see what a search returns before adding it, without changing anything:
+
+```bash
+node scripts/catalog/build.mjs --probe 'deepcat:"Hats"'
+```
+
+The same thing is available from the **Actions** tab: run *Build catalog* and fill in the *probe*
+box.
+
+### Why a build takes a while
+
+Wikipedia limits how fast scripts that do not identify themselves may ask. The build asks for
+50 pages at a time, waits whenever it is told to slow down, and stops cleanly after 40 minutes with
+whatever it has collected. A build that comes back much smaller than the existing catalog is
+discarded rather than committed.
+
+Wikipedia asks scripts to identify themselves with contact details, and may allow identified
+scripts more requests. If you want that, add a repository variable named `CATALOG_USER_AGENT`
+(**Settings → Secrets and variables → Actions → Variables**), for example
+`CurioCapsuleCatalog/1.0 (https://github.com/you/your-repo; you@example.com)`. Nothing personal is
+sent unless you set it.
 
 Good to know: tags on Wikipedia-sourced items are guessed from keywords, so they are rougher than
 the hand-tagged seeds. If something odd turns up, add a `drop` pattern to its source or put a
@@ -96,5 +131,5 @@ vendor/                 Phaser (MIT licence)
 ## Credits
 
 Descriptions and images come from [Wikipedia](https://en.wikipedia.org/) and Wikimedia Commons and
-remain under their own free licences (text is CC BY-SA); each card links to its source article.
+remain under their own licences (Wikipedia text is CC BY-SA); each card links to its source article.
 Product and brand names belong to their owners and are used only to describe the objects.

@@ -1,8 +1,18 @@
 # Rebuilds data/catalog/ from the seeds plus Wikipedia and commits the result to the same branch.
+#
+# Wikipedia limits how fast unidentified scripts may ask, so a full build takes a while: it waits
+# whenever it is told to slow down. To identify the build to Wikipedia (which they ask for, and which
+# may lift the limit), set a repository variable named CATALOG_USER_AGENT, for example
+#   CurioCapsuleCatalog/1.0 (https://github.com/you/your-repo; you@example.com)
 name: Build catalog
 
 on:
   workflow_dispatch:
+    inputs:
+      probe:
+        description: 'Only try out searches and write nothing (separate several with ;;)'
+        required: false
+        default: ''
   push:
     paths:
       - 'scripts/catalog/**'
@@ -14,31 +24,43 @@ permissions:
   contents: write
 
 concurrency:
-  group: catalog-${{ github.ref }}
+  group: catalog-${{ github.ref }}-${{ inputs.probe && 'probe' || 'build' }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
+    env:
+      CATALOG_USER_AGENT: ${{ vars.CATALOG_USER_AGENT }}
+      CATALOG_TIME_BUDGET_MIN: 40
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
+      - name: Try out searches
+        if: ${{ inputs.probe }}
+        env:
+          PROBE: ${{ inputs.probe }}
+        run: node scripts/catalog/build.mjs --probe "$PROBE"
       - name: Build catalog from seeds and Wikipedia
+        if: ${{ !inputs.probe }}
         run: node scripts/catalog/build.mjs
       - name: Validate catalog
+        if: ${{ !inputs.probe }}
         run: node scripts/catalog/validate.mjs --min 1000
       - name: Unit tests
+        if: ${{ !inputs.probe }}
         run: npm test
       - name: Commit refreshed catalog
         id: commit
+        if: ${{ !inputs.probe }}
         run: |
-          git add data/catalog
-          if git diff --cached --quiet -- . ':(exclude)data/catalog/index.json'; then
+          git add -A data
+          if git diff --cached --quiet -- data/catalog ':(exclude)data/catalog/index.json'; then
             echo "Catalog items unchanged; nothing to commit."
             echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
