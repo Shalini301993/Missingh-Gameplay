@@ -249,6 +249,7 @@ legend { font-family: var(--serif); font-size: 1.1rem; padding: 0; margin-bottom
 .card { border-top: 6px solid var(--common); }
 .card.rare { border-top-color: var(--rare); }
 .card.legendary { border-top-color: var(--legendary); }
+.about { font-size: 0.95rem; color: var(--ink-soft); margin-top: -6px; }
 .note { font-size: 0.88rem; color: var(--accent); }
 .blurb { font-family: var(--serif); font-size: 1.08rem; line-height: 1.5; }
 .tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }

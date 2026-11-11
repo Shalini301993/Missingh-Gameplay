@@ -3,6 +3,7 @@
 //   node scripts/catalog/build.mjs                      seeds + Wikipedia (needs internet)
 //   node scripts/catalog/build.mjs --offline            seeds only
 //   node scripts/catalog/build.mjs --probe 'deepcat:"Hats"'   show what a search returns, write nothing
+//   node scripts/catalog/build.mjs --refilter           re-apply the rules to the catalog on disk
 //
 // Wikipedia only lets an unidentified script make a few requests a minute. So every source is one
 // search that returns pictures, descriptions and intro text together, the build waits whenever it is
@@ -143,7 +144,8 @@ const PAGE_PROPS = {
   prop: 'pageimages|description|pageprops|cirrusdoc',
   piprop: 'thumbnail', pithumbsize: String(THUMB_WIDTH), pilimit: 'max',
   ppprop: 'disambiguation',
-  cdincludes: 'opening_text|popularity_score', // intro text and share of page views, from the search index
+  // From the search index: intro text, share of page views, categories and the title as displayed.
+  cdincludes: 'opening_text|popularity_score|category|display_title',
 };
 
 // Turns a source from sources.json into a Wikipedia search.
@@ -162,28 +164,79 @@ export function sourceQuery(source) {
 }
 
 // ---------------------------------------------------------------- filtering and tagging
+//
+// Wikipedia categories are about topics, so a search of "Chairs" also finds chair designers, a
+// president who used a wheelchair and a puzzle about sofas. These rules keep the objects.
 
-const NOT_AN_OBJECT_TITLE = /^(List|Lists|Timeline|History|Outline|Index|Glossary|Comparison) of\b/i;
-const UNSUITABLE = /\b(weapons?|firearms?|rifles?|pistols?|guns?|swords?|daggers?|tobacco|cigarettes?|cigars?|vap(e|ing)|lingerie|fetish|erotic|sex|condoms?|missiles?|bombs?|warfare|military|army|nazi|narcotics?|cannabis|alcoholic|gambling|torture|execution)\b/i;
-const PERSON = /^(an? )?([\w-]+ ){0,3}(designer|perfumer|businessman|businesswoman|businessperson|entrepreneur|author|writer|novelist|poet|actor|actress|singer|musician|engineer|inventor|artist|model|politician|architect|illustrator|composer)\b(?!.*\bby\b)/i;
-const ORGANISATION = /\b(company|companies|manufacturer|corporation|retailer|conglomerate|subsidiary|fashion house|publisher|publishing house|organi[sz]ation|association|museum|chain of|department store|record label|studio|watchmaker|shoemaker|luthier|jewell?er|firm)\b/i;
-const NOT_A_THING = /\b(film|television|tv series|album|song|single by|episode|magazine|website|festival|award|trade fair|exhibition|subculture|genre|industry|disambiguation|wikimedia|political|law|act of|profession|occupation|craft of|art of|process|technique|term)\b/i;
+// Titles that are about a subject rather than being a thing.
+const TOPIC_TITLE = /^(List|Lists|Timeline|History|Outline|Index|Glossary|Comparison|Culture|Types) of\b|\s(sizes?|collecting|making|weaving|handling|allowance|ban|problem|hoax|spill|flight|ceremony|prescription|time|industry|fashion|controversy|position)$/i;
 
-export function rejectReason(page, { allowOrganisations = false, allowNoImage = false, require, drop } = {}) {
+// Never right for an all-ages game, wherever it turns up (title, description or intro).
+const ADULT = /\b(sex|sexual\w*|sex toys?|erotic\w*|fetish\w*|bdsm|bondage|vibrators?|dildos?|pornograph\w*|genital\w*|penis|vagina\w*|pubic|orgasm\w*|masturbat\w*|condoms?|upskirt|voyeur\w*|prostitut\w*|brothel|striptease|strippers?|rape[ds]?|incest\w*|pa?edophil\w*|molest\w*)\b/i;
+// Left out when it is the subject, but harmless in passing ("a shirt was once an undergarment").
+const INTIMATE = /\b(nud(e|ity)|naked|buttocks|breasts|lingerie|g-string|thongs?|undergarments?|underwear|brassieres?|panties|diapers?)\b/i;
+
+// Not suitable when it is what the page is about (title or description).
+const UNSUITABLE = /\b(weapons?|firearms?|rifles?|pistols?|guns?|swords?|daggers?|tobacco|cigarettes?|cigars?|vap(e|ing)|missiles?|bombs?|warfare|military|army|naval|navy|warships?|nazi|narcotics?|cannabis|hash|heroin|cocaine|alcoholic|gambling|casino|torture|execut(ed|ion|ions)|electric chairs?|punish\w*|corporal|penance|penitent\w*|mortification|restrain(t|ts|ing)?|straitjacket|handcuffs?|shackles?|guillotine|gallows|slave\w*|racis\w*|caricature|blackface|supremac\w*|genocide|holocaust|suicide|murder\w*|corpses?|cadavers?|human bod(y|ies)|foot binding|bound feet|hoax|conspiracy|haunted|paranormal|voodoo|outlaw|criminal)\b/i;
+
+// People are recognised by their Wikipedia categories ("1884 births", "Living people") and,
+// failing that, by a description that leads with a role or carries life dates.
+const PERSON_CATEGORY = /\b(births|deaths)$|\bliving people$/i;
+const PERSON = /^(an? )?([\w-]+ ){0,3}(designer|perfumer|businessman|businesswoman|businessperson|entrepreneur|author|writer|novelist|poet|actor|actress|singer|musician|engineer|inventor|artist|politician|architect|illustrator|composer|president|governor|pope|monarch|prime minister|senator|footballer|athlete|spy|spies)\b(?!.*\bby\b)/i;
+const LIFE_DATES = /\((born )?\d{4}([–-]\d{4})?\)|\b(from|since) \d{4}\b/i;
+
+const ORGANISATION = /\b(company|companies|manufacturer|corporation|conglomerate|subsidiary|fashion house|design house|publisher|publishing house|organi[sz]ation|association|museum|record label|studio|watchmaker|shoemaker|luthier|jewell?er|firm)\b/i;
+// Shops are never objects, even where brands are allowed.
+const RETAIL = /\b(retailers?|retail|department store|supermarket|chain of|store chain|stores?|shops?|e-commerce|marketplace|boutique)\b/i;
+
+// What a description says the page is, when that is not a physical thing. The first list matches
+// anywhere in the head of the description, the second only where the head ends, so that
+// "1999 film" is rejected but "film camera" is not, and "winter sport" but not "sports car".
+const NOT_A_THING = /\b(tv series|television (series|show|program|programme|network|channel|film|drama|special)|episode|website|festival|trade fair|exhibition|subculture|genre|disambiguation|wikimedia|act of|profession|occupation|craft of|art of|process|processing|technique|classification|sizes|measurement|theory|phenomenon|(art|social|cultural|political|design) movement|visual arts?|architecture|revolution|ceremony|ritual|tradition|manner of|martial art|operating system|software|web browser|programming language|protocol|video games?(?! (console|system|controller|accessor))|franchise|fictional|deity|god|goddess|mytholog\w*|mystical|species|genus|flowering plant|church|chapel|cathedral|palace|statue|sculpture|painting|battalion|regiment|incident|accident|disaster|scandal|court case|cuisine|beverage|appetizer|dessert|chemical|spice|shrub|mineral|alloy|symbol\w*|emblem|slogan|phrase|idiom|person who|people who|paradox|(city|town|village|borough|province|river|mountain|island|country) in)\b|^(term|word|name|nickname)\b/i;
+const NOT_A_THING_AT_END = /\b(films?|albums?|songs?|singles?|magazines?|awards?|industry|law|term|concepts?|methods?|activit(y|ies)|pastime|hobby|sports?|customs?|practice|service|labels?|marks?|characters?|plants?|fruits?|trees?|herbs?|compounds?|dish(es)?|meals?|drinks?|snacks?|coffee|index|temperature|variance|problems?|trials?|affairs?|city|town|village|country)$/i;
+
+// A description's head is what the thing is, before "by …", "from …", "used for …" and the like.
+// "Sports car manufactured by the manufacturer Porsche" is a car; "German car manufacturer" is not.
+const AFTER_HEAD = /\b(by|from|for|based|adapted|made|produced|manufactured|designed|developed|marketed|sold|owned|created|featuring|used|worn|introduced|released|endorsed)\b/i;
+const headOf = (description) => description.split(AFTER_HEAD)[0].replace(/[\s,;:]+$/, '');
+
+// Why a page is not wanted, or null when it is. `page` is a search result; `options` are the
+// source's settings plus `exclude`, a set of lower-case titles to leave out, and `named`, true for
+// named works and products, whose titles ("Crime and Punishment", "Epiphone Casino") say nothing
+// about what they are.
+export function rejectReason(page, { allowOrganisations = false, allowNoImage = false, named = false, require, drop, exclude } = {}) {
   const description = page.description || '';
+  const doc = page.cirrusdoc?.[0]?.source ?? {};
+  const intro = typeof doc.opening_text === 'string' ? doc.opening_text.slice(0, 400) : '';
   const text = `${page.title} ${description}`;
+  const head = headOf(description);
   if (page.missing || page.invalid) return 'missing';
   if (page.pageprops && 'disambiguation' in page.pageprops) return 'disambiguation';
-  if (NOT_AN_OBJECT_TITLE.test(page.title)) return 'list-page';
+  if (!named && TOPIC_TITLE.test(displayTitle(page.title))) return 'topic-page';
+  if (exclude?.has(page.title.toLowerCase())) return 'excluded';
   if (!allowNoImage && !page.thumbnail?.source) return 'no-image';
   if (!description) return 'no-description';
-  if (UNSUITABLE.test(text)) return 'unsuitable';
-  if (PERSON.test(description) || /\((born )?\d{4}([–-]\d{4})?\)/.test(description)) return 'person';
-  if (!allowOrganisations && ORGANISATION.test(description)) return 'organisation';
-  if (NOT_A_THING.test(description)) return 'not-a-thing';
+  const subject = named ? description : text;
+  if (ADULT.test(`${text} ${intro}`) || INTIMATE.test(subject) || UNSUITABLE.test(subject)) return 'unsuitable';
+  if ((doc.category ?? []).some((category) => PERSON_CATEGORY.test(category))) return 'person';
+  if (PERSON.test(description) || LIFE_DATES.test(description)) return 'person';
+  if (RETAIL.test(head) || (!allowOrganisations && ORGANISATION.test(head))) return 'organisation';
+  if (NOT_A_THING.test(head) || NOT_A_THING_AT_END.test(head)) return 'not-a-thing';
   if (drop && new RegExp(drop, 'i').test(text)) return 'source-drop';
   if (require && !new RegExp(require, 'i').test(text)) return 'source-require';
   return null;
+}
+
+// Items whose titles start with the same word ("iPhone 13", "iPhone 14", …) are one family.
+export const familyOf = (title) => title.replace(/^(the|an?)\s+/i, '').split(/[\s\-–:,.']+|(?<=[A-Za-z])(?=\d)/)[0].toLowerCase();
+
+// Wikipedia stores "iPhone" as "IPhone". Use the page's own display title when it only differs
+// in capitals, and fix the best-known cases otherwise.
+export function properTitle(title, shown) {
+  const plain = typeof shown === 'string'
+    ? shown.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").trim() : '';
+  if (plain && plain.toLowerCase() === title.toLowerCase()) return plain;
+  return title.replace(/^I(Phone|Pad|Pod|Mac|Book|Tunes)/, 'i$1').replace(/^E(Bay|Reader)/, 'e$1');
 }
 
 // A named product ("1921 perfume", "line of toys by Hasbro") or a kind of thing ("type of hat")?
@@ -231,13 +284,18 @@ export function tagItem(text, defaults = {}) {
 }
 
 export const displayTitle = (title) => title.replace(/\s+\([^)]*\)$/, '');
+const sentenceCase = (text) => (text ? text[0].toUpperCase() + text.slice(1) : text);
 export const wikiTitle = (title) => title.replace(/ /g, '_');
 
+// Housekeeping notes that sometimes come before the first real sentence of an article.
+const NOTICE = /^(This article|This page|For other uses|For the|Not to be confused|Without proper rendering support|Several terms redirect here)[^.]*\.\s*/i;
 const ABBREVIATION = /(?:^|[\s(])(?:No|Dr|Mr|Mrs|Ms|St|Jr|Sr|vs|Inc|Ltd|Co|Corp|Mt|Ft|[A-Z])$/;
 
 // One or two opening sentences, at most about 300 characters.
 export function tidyBlurb(text, fallback) {
-  let blurb = (text || '').replace(/\s+/g, ' ').replace(/\s\([^)]*\)/g, '').replace(/\s+([,.;:])/g, '$1').trim();
+  let blurb = (text || '').replace(/\s+/g, ' ').trim();
+  while (NOTICE.test(blurb)) blurb = blurb.replace(NOTICE, '');
+  blurb = blurb.replace(/\s\([^)]*\)/g, '').replace(/\s+([,.;:])/g, '$1').trim();
   if (blurb.length < 40) blurb = (fallback || blurb).trim();
   if (blurb.length > 300) {
     const window = blurb.slice(0, 300);
@@ -329,7 +387,8 @@ async function enrichSeeds(api, seeds, log) {
 function toCandidate(page, source, settings) {
   const doc = page.cirrusdoc?.[0]?.source ?? {};
   return {
-    pageid: page.pageid, title: page.title, wiki: wikiTitle(page.title), description: page.description,
+    pageid: page.pageid, title: properTitle(page.title, doc.display_title), wiki: wikiTitle(page.title),
+    description: page.description,
     image: page.thumbnail?.source ?? null,
     opening: typeof doc.opening_text === 'string' && doc.opening_text.trim() ? doc.opening_text : null,
     popularity: Number(doc.popularity_score) || 0,
@@ -338,7 +397,9 @@ function toCandidate(page, source, settings) {
   };
 }
 
-const filtersFor = (source, settings) => ({
+const filtersFor = (source, settings, exclude) => ({
+  exclude,
+  named: (source.kind ?? settings.kind) === 'iconic',
   allowOrganisations: source.allowOrganisations ?? settings.allowOrganisations,
   allowNoImage: source.allowNoImage ?? settings.allowNoImage,
   require: source.require ?? settings.require,
@@ -355,6 +416,8 @@ export async function build({
   const pools = new Map(CATEGORIES.map((category) => [category.id, []]));
   const taken = new Set(seeds.filter((seed) => seed.wiki).map((seed) => seed.wiki.toLowerCase()));
   const chosen = new Map(CATEGORIES.map((category) => [category.id, []]));
+  const exclude = new Set((config.exclude ?? []).map((title) => title.toLowerCase()));
+  const families = new Map(CATEGORIES.map((category) => [category.id, new Map()]));
   let outOfTime = false;
 
   if (!offline) {
@@ -395,9 +458,15 @@ export async function build({
       const candidates = [];
       for (const page of result.pages) {
         const wiki = wikiTitle(page.title).toLowerCase();
-        const reason = taken.has(wiki) ? 'duplicate' : rejectReason(page, filtersFor(source, settings));
+        // No more than a handful from one family, or the iPhones and Toyotas crowd everything out.
+        const family = familyOf(page.title);
+        const familyCount = families.get(category.id);
+        const familyFull = (familyCount.get(family) ?? 0) >= (settings.perFamilyCap ?? config.perFamilyCap ?? 5);
+        const reason = taken.has(wiki) ? 'duplicate'
+          : rejectReason(page, filtersFor(source, settings, exclude)) ?? (familyFull ? 'too-many-alike' : null);
         if (reason) { row.rejected[reason] = (row.rejected[reason] ?? 0) + 1; continue; }
         taken.add(wiki);
+        familyCount.set(family, (familyCount.get(family) ?? 0) + 1);
         candidates.push({ ...toCandidate(page, source, settings), row });
       }
       row.kept = candidates.length;
@@ -440,11 +509,16 @@ export async function build({
   for (const category of CATEGORIES) {
     const picked = chosen.get(category.id);
     const byViews = picked.some((candidate) => candidate.popularity > 0);
+    const titles = new Set(seeds.filter((seed) => seed.category === category.id).map((seed) => seed.title.toLowerCase()));
     const generated = picked.map((candidate, index) => {
       const blurb = tidyBlurb(candidate.opening, candidate.description);
+      // "BMW 3 Series (E90)" keeps its bracket when the short form is already taken.
+      const short = displayTitle(candidate.title);
+      const title = titles.has(short.toLowerCase()) ? candidate.title : short;
+      titles.add(title.toLowerCase());
       return {
-        id: `${category.id}/${slugify(candidate.title)}`, title: displayTitle(candidate.title), kind: candidate.kind,
-        category: category.id, blurb, wiki: candidate.wiki, image: candidate.image,
+        id: `${category.id}/${slugify(candidate.title)}`, title, kind: candidate.kind,
+        category: category.id, about: sentenceCase(candidate.description), blurb, wiki: candidate.wiki, image: candidate.image,
         ...tagItem(`${candidate.title} ${candidate.description} ${blurb}`, candidate.defaults),
         rarity: 'common', source: 'wikipedia', score: byViews ? candidate.popularity : -index,
       };
@@ -493,6 +567,29 @@ export function reportMarkdown(counts, report, stats) {
   return `${lines.join('\n')}\n`;
 }
 
+// Re-applies the current rules and the exclude list to the Wikipedia items already in
+// data/catalog/, without contacting Wikipedia. It can only remove items; a full build adds them.
+export async function refilter({ log = console.log } = {}) {
+  const config = JSON.parse(await readFile(path.join(ROOT, 'scripts/catalog/sources.json'), 'utf8'));
+  const exclude = new Set((config.exclude ?? []).map((title) => title.toLowerCase()));
+  const catalog = new Map();
+  for (const category of CATEGORIES) {
+    const items = JSON.parse(await readFile(path.join(ROOT, 'data/catalog', `${category.id}.json`), 'utf8'));
+    catalog.set(category.id, items.filter((item) => {
+      if (item.source !== 'wikipedia') return true;
+      const page = {
+        title: item.wiki.replace(/_/g, ' '), description: item.about || 'object', thumbnail: { source: 'kept' },
+        cirrusdoc: [{ source: { opening_text: item.blurb } }],
+      };
+      // Which source an item came from is not recorded, so only the rules shared by all apply.
+      const reason = rejectReason(page, { allowOrganisations: true, named: item.kind === 'iconic', exclude });
+      if (reason) log(`  removing ${item.title} (${category.id}): ${reason}`);
+      return !reason;
+    }));
+  }
+  return catalog;
+}
+
 // Prints what each search returns and why each page would be kept or rejected. Writes nothing.
 async function probe(queries, log = console.log) {
   const api = createApi({ log });
@@ -516,7 +613,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const args = process.argv.slice(2);
   const offline = args.includes('--offline');
   try {
-    if (args.includes('--probe')) {
+    if (args.includes('--refilter')) {
+      const manifest = await writeCatalog(await refilter(), { offline: false });
+      console.log(`Kept ${manifest.total} items.`);
+    } else if (args.includes('--probe')) {
       const queries = (args[args.indexOf('--probe') + 1] ?? '').split(';;').map((query) => query.trim()).filter(Boolean);
       if (!queries.length) throw new Error('Give --probe a search, e.g. --probe \'deepcat:"Hats"\'');
       await probe(queries);

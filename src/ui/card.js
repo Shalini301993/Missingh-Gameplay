@@ -61,6 +61,7 @@ export function createCardSheet(dialog, { isFavourite, onFavourite }) {
             h('span', { class: 'rarity-word' }, rarity?.label ?? item.rarity),
             h('span', {}, `${category?.label ?? item.category} · ${item.kind === 'iconic' ? 'Iconic object' : 'Type of object'}`)),
           h('h2', { id: 'card-title' }, item.title),
+          item.about && h('p', { class: 'about' }, item.about),
           note && h('p', { class: 'note' }, note),
           h('p', { class: 'blurb' }, item.blurb),
           h('ul', { class: 'tags', 'aria-label': 'Tags' }, [...new Set(tags)].map((tag) => h('li', {}, tag))),

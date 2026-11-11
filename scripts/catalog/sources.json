@@ -1,29 +1,39 @@
 {
   "perCategoryCap": 140,
+  "perFamilyCap": 5,
+  "exclude": [
+    "Golliwog", "The Turner Diaries", "The Camp of the Saints", "Mein Kampf", "Clock tower", "Doomsday Clock",
+    "This machine kills fascists", "Sagging (fashion)", "Tea bag", "Airbag", "Ballot box", "Post box", "Body piercing",
+    "Tattoo", "Crown of thorns", "Tin foil hat", "Black Watch", "Ark of the Covenant", "Annabelle (doll)",
+    "Friendly Floatees spill", "Voodoo doll", "Nyotaimori", "Ballet boot", "Hitachi Magic Wand", "Lotus shoe", "Slippering",
+    "Big Nose George", "Drinking from shoes", "Old Sparky", "Ducking stool", "Medbed", "Body bag"
+  ],
   "categories": {
     "clothing": {
+      "require": "garment|clothing|clothes|dress|coat|jacket|shirt|skirt|trousers|pants|suit\\b|robe|gown|sweater|jumper|pullover|costume|attire|apparel|outfit|wear\\b|cloak|cape\\b|tunic|kimono|sari|uniform|shorts|jeans|shawl|apron|vest|waistcoat|blouse|cardigan|hoodie|overalls|pajamas|pyjamas|swimsuit|blazer|parka|poncho|kilt|leggings|socks?\\b",
       "defaults": {"vibes":["minimalist"],"moods":["calm"],"budget":"treat"},
       "sources": [
-        {"template":"Infobox clothing type","limit":100,"kind":"generic","weight":2},
-        {"cats":["Jackets","Coats (clothing)","Dresses","Sweaters","Trousers and shorts","Skirts","Tops (clothing)","Shirts","Suits (clothing)","Robes and cloaks","Gowns","Sportswear","Swimsuits","Jeans by type","Knitted garments"],"limit":200,"kind":"generic","weight":2},
-        {"cats":["Folk costumes","Japanese full-body garments","Indian clothing","Korean clothing","Scottish clothing","Chinese traditional clothing","History of clothing (Western fashion)"],"limit":100,"kind":"generic","defaults":{"vibes":["retro","romantic"],"moods":["nostalgic"]}},
-        {"cats":["1960s fashion","1970s fashion","1980s fashion","1990s fashion","2000s fashion"],"limit":100,"drop":"hairstyle|haircut|subculture|movement|style$|look$|fashion$","defaults":{"vibes":["retro"],"moods":["nostalgic"]}}
+        {"template":"Infobox clothing type","limit":150,"kind":"generic","weight":2,"require":""},
+        {"cats":["Jackets","Coats (clothing)","Dresses","Sweaters","Trousers and shorts","Skirts","Tops (clothing)","Shirts","Suits (clothing)","Robes and cloaks","Gowns","Sportswear","Swimsuits","Jeans by type","Knitted garments","Outerwear","Formal wear","Workwear","Uniforms","Academic dress","Shawls and wraps","Aprons","One-piece suits"],"limit":250,"kind":"generic","weight":2},
+        {"cats":["Folk costumes","Japanese full-body garments","Indian clothing","Korean clothing","Scottish clothing","Chinese traditional clothing","History of clothing (Western fashion)","Mexican clothing","African clothing","Arabic clothing","Greek clothing","Roman-era clothing","Medieval European costume"],"limit":150,"kind":"generic","defaults":{"vibes":["retro","romantic"],"moods":["nostalgic"]}}
       ]
     },
     "shoes": {
+      "require": "shoe|boot|sandal|sneaker|slipper|footwear|clog|heel|moccasin|loafer|trainer|espadrille|brogue",
       "defaults": {"vibes":["sporty"],"moods":["playful"],"budget":"treat"},
       "sources": [
-        {"cats":["Shoes","Boots","Sandals","Footwear","Historical footwear","Dance shoes","High-heeled footwear","Slippers","Athletic shoes","Sneakers"],"limit":200,"kind":"generic","weight":2},
-        {"cats":["Nike brands","Adidas","Adidas brands","Converse (shoe company)","Reebok brands","Puma (brand)","Sneaker culture","Basketball shoes"],"limit":150,"kind":"iconic","allowOrganisations":true,"require":"shoe|sneaker|boot|trainer|footwear|cleat"},
-        {"cats":["Shoe brands","Sportswear brands","Shoe companies of the United States","Footwear"],"search":"shoe","limit":100,"kind":"iconic","allowOrganisations":true,"require":"shoe|sneaker|boot|footwear|sandal|clog"}
+        {"cats":["Shoes","Boots","Sandals","Footwear","Historical footwear","Dance shoes","High-heeled footwear","Slippers","Athletic shoes","Sneakers","Sports footwear","Japanese footwear","Folk footwear"],"limit":250,"kind":"generic","weight":2},
+        {"cats":["Nike brands","Adidas","Adidas brands","Converse (shoe company)","Reebok brands","Puma (brand)","Sneaker culture","Basketball shoes","Air Jordan","New Balance","Vans"],"limit":150,"kind":"iconic","allowOrganisations":true},
+        {"cats":["Shoe brands","Sportswear brands","Shoe companies of the United States","Shoe companies of Italy","Shoe companies of the United Kingdom","Shoe companies of Germany","Luxury brands"],"search":"shoe","limit":150,"kind":"iconic","allowOrganisations":true}
       ]
     },
     "perfumes": {
+      "allowNoImage": true,
       "defaults": {"vibes":["luxe","romantic"],"moods":["romantic"],"budget":"splurge"},
       "sources": [
-        {"deepcat":"Perfumes","limit":250,"kind":"iconic","weight":3},
-        {"template":"Infobox fragrance","limit":100,"kind":"iconic"},
-        {"cats":["Perfume ingredients","Incense material","Resins","Essential oils","Perfumery","Incense"],"limit":100,"kind":"generic","defaults":{"budget":"treat","vibes":["cosy"],"moods":["calm"]}}
+        {"template":"Infobox fragrance","limit":200,"kind":"iconic","weight":3},
+        {"cats":["Perfumes","Designer perfumes","Celebrity perfumes","Chanel perfumes","Guerlain perfumes","History of perfume","Perfumery"],"limit":150,"kind":"iconic","require":"perfume|fragrance|cologne|eau de|scent|toilet water|aftershave"},
+        {"cats":["Perfume ingredients","Incense material","Resins","Essential oils","Incense"],"limit":150,"kind":"generic","allowNoImage":false,"require":"perfum|fragran|aromatic|incense|essential oil|resin\\b|balsam|musk|attar","defaults":{"budget":"treat","vibes":["cosy"],"moods":["calm"]}}
       ]
     },
     "books": {
@@ -35,87 +45,92 @@
         {"template":"Infobox book","cats":["American novels adapted into films","British novels adapted into films","Novels adapted into films","French novels adapted into films","Russian novels adapted into films","Japanese novels adapted into films","German novels adapted into films"],"limit":200,"weight":2},
         {"template":"Infobox book","cats":["Hugo Award for Best Novel-winning works","Nebula Award for Best Novel-winning works","Science fiction novel series","Dystopian novels"],"limit":100,"defaults":{"vibes":["futuristic","bookish"],"moods":["adventurous"]}},
         {"template":"Infobox book","cats":["Pulitzer Prize for Fiction-winning works","Pulitzer Prize for the Novel-winning works","Booker Prize-winning works","National Book Award for Fiction-winning works","Modern Library 100 Best Novels"],"limit":100},
-        {"template":"Infobox book","search":"children's picture book","limit":50,"defaults":{"vibes":["whimsical","bookish"],"moods":["playful"]}},
-        {"template":"Infobox book","search":"fantasy novel","limit":100,"defaults":{"vibes":["whimsical","bookish"],"moods":["adventurous"]}}
+        {"template":"Infobox book","cats":["Newbery Medal-winning works","Caldecott Medal-winning works","American picture books","British picture books","American children's novels","British children's novels","Children's fantasy novels"],"limit":100,"defaults":{"vibes":["whimsical","bookish"],"moods":["playful"]}},
+        {"template":"Infobox book","cats":["High fantasy novels","Fantasy novel series","British fantasy novels","American fantasy novels","Gothic novels","Detective novels","British mystery novels","American mystery novels"],"limit":100,"defaults":{"vibes":["whimsical","bookish"],"moods":["adventurous"]}}
       ]
     },
     "bags": {
+      "require": "\\bbags?\\b|handbag|purse|backpack|rucksack|satchel|suitcase|\\btrunk\\b|luggage|pouch|wallet|tote|briefcase|knapsack|holdall|duffel|haversack|portmanteau|reticule",
+      "drop": "allowance|carousel|handler|handling|reclaim|checked|lost\\b|\\block\\b|\\btag\\b|\\bcart\\b|airline|airport|plastic|paper|\\btea\\b|\\bbin\\b|garbage|trash|rubbish|sickness|vomit|hyperbaric|antistatic|boil|milk|coffee|flour|pastry|feed|\\bice\\b|burn bag|security|mail|postal|ballot|sandbag|punching|bean bag|sleeping|hydration|medical|thermal|shopping|grocery|reusable|biodegradable|\\bban\\b|packaging|storage|freezer|evidence",
       "defaults": {"vibes":["minimalist"],"moods":["calm"],"budget":"treat"},
       "sources": [
-        {"deepcat":"Bags","limit":200,"weight":2},
-        {"cats":["Luggage brands","Bags (fashion)","Handbags","Luggage","Luggage manufacturers","Fashion accessory brands"],"limit":150,"kind":"iconic","allowOrganisations":true,"require":"bag|luggage|suitcase|trunk|handbag|leather|backpack|purse"},
-        {"cats":["Containers","Basket weaving","Baskets","Boxes","Packaging"],"limit":100,"kind":"generic","require":"bag|basket|case|pouch|box|chest|purse|sack|trunk"}
+        {"cats":["Bags","Bags (fashion)","Luggage","Handbags","Backpacks","Japanese bags","Pouches"],"limit":250,"weight":2},
+        {"cats":["Luggage brands","Bags (fashion)","Luggage manufacturers","Fashion accessory brands","Luxury brands","High fashion brands"],"limit":200,"kind":"iconic","allowOrganisations":true,"require":"bag|luggage|suitcase|trunk|handbag|leather goods|backpack|purse"},
+        {"cats":["Baskets","Basket weaving","Containers"],"limit":100,"kind":"generic","require":"basket|\\bbag\\b|pouch|sack\\b|satchel"}
       ]
     },
     "accessories": {
       "kind": "generic",
       "defaults": {"vibes":["luxe"],"moods":["bold"],"budget":"treat"},
       "sources": [
-        {"cats":["Fashion accessories","Scarves","Belts (clothing)","Gloves","Neckties","Handwear","Neckwear","Umbrellas","Wigs"],"limit":100},
-        {"deepcat":"Hats","limit":150},
-        {"cats":["Types of jewellery","Necklaces","Rings (jewellery)","Bracelets","Earrings","Brooches","Jewellery components","Jewellery","Crowns (headgear)"],"limit":150},
-        {"cats":["Eyewear","Sunglasses","Eyewear brands","Corrective lenses"],"limit":100,"allowOrganisations":true},
-        {"cats":["Individual diamonds","Individual pearls","Individual items of jewellery","Individual necklaces","Individual crowns","Individual tiaras"],"limit":100,"kind":"iconic","defaults":{"budget":"dream"}}
+        {"cats":["Fashion accessories","Scarves","Belts (clothing)","Gloves","Neckties","Handwear","Neckwear","Umbrellas","Hand fans","Handkerchiefs"],"limit":150,"require":"scarf|scarves|belt|glove|mitten|tie\\b|necktie|cravat|umbrella|parasol|fan\\b|handkerchief|shawl|veil|pin\\b|cufflink|accessory|wig\\b|sash|muff|brooch|buckle|badge"},
+        {"cats":["Hats","Caps","Headgear","Bonnets (headgear)","Turbans","Crowns (headgear)","Headdresses","Berets"],"limit":200,"weight":2,"require":"\\bhats?\\b|\\bcaps?\\b|headgear|headwear|headdress|bonnet|turban|crown|helmet|hood\\b|beret|veil|headband|headscarf|tiara|diadem"},
+        {"cats":["Types of jewellery","Necklaces","Rings (jewellery)","Bracelets","Earrings","Brooches","Jewellery components","Jewellery","Pendants","Anklets"],"limit":150,"require":"jewel|necklace|\\brings?\\b|bracelet|earring|brooch|pendant|diamond|pearl|\\bgems?\\b|gemstone|tiara|diadem|torc|amulet|charm|bead|chain|locket|anklet|cufflink|bangle|choker"},
+        {"cats":["Eyewear","Sunglasses","Eyewear brands","Eyewear companies of the United States","Eyewear companies of Italy"],"limit":100,"allowOrganisations":true,"require":"glasses|sunglasses|spectacles|eyewear|goggles|monocle|eyeglass","drop":"implant|surgery|surgical|medical|contact lens|intraocular|scleral|refractive|3D system|prescription"},
+        {"cats":["Individual diamonds","Individual pearls","Individual items of jewellery","Individual necklaces","Individual crowns","Individual tiaras","Crown jewels"],"limit":100,"kind":"iconic","require":"diamond|pearl|crown|tiara|necklace|jewel|\\bgems?\\b|ruby|sapphire|emerald|brooch|\\bring\\b|diadem","defaults":{"budget":"dream"}}
       ]
     },
     "watches": {
+      "perFamilyCap": 8,
+      "require": "watch|chronograph|chronometer|timepiece|clock|sundial|hourglass",
+      "drop": "operating system|software|regiment|battalion",
       "defaults": {"vibes":["luxe"],"moods":["bold"],"budget":"splurge"},
       "sources": [
         {"deepcat":"Watch models","limit":150,"kind":"iconic","weight":2},
         {"template":"Infobox watch","limit":100,"kind":"iconic"},
-        {"cats":["Rolex watches","Omega watches","Casio watches","Seiko","Swatch","Citizen Watch","Smartwatches","Apple Watch","Wear OS devices","Watches"],"limit":100,"kind":"iconic"},
-        {"cats":["Watch brands","Swiss watch brands","Watch manufacturing companies of Switzerland","Watch manufacturing companies of Japan","Watch manufacturing companies of the United States"],"limit":100,"kind":"iconic","allowOrganisations":true},
-        {"cats":["Clocks","Clock designs","Timekeeping","Types of clocks","Individual clocks"],"limit":100,"kind":"generic","require":"clock|watch|timepiece|sundial|hourglass|chronometer","defaults":{"budget":"treat","vibes":["retro"],"moods":["nostalgic"]}}
+        {"cats":["Rolex watches","Omega watches","Casio watches","Seiko","Swatch","Citizen Watch","Smartwatches","Apple Watch","Wear OS devices","Watches","Individual watches","Military watches","Diving watches"],"limit":150,"kind":"iconic"},
+        {"cats":["Watch brands","Swiss watch brands","Watch manufacturing companies of Switzerland","Watch manufacturing companies of Japan","Watch manufacturing companies of the United States","Watch manufacturing companies of Germany"],"limit":150,"kind":"iconic","allowOrganisations":true},
+        {"cats":["Clocks","Clock designs","Types of clocks","Individual clocks","Astronomical clocks"],"limit":150,"kind":"generic","defaults":{"budget":"treat","vibes":["retro"],"moods":["nostalgic"]}}
       ]
     },
     "toys": {
+      "drop": "console|handheld|video game",
       "defaults": {"vibes":["whimsical"],"moods":["playful"],"budget":"everyday"},
       "sources": [
-        {"template":"Infobox toy","limit":200,"kind":"iconic","weight":3},
-        {"cats":["1950s toys","1960s toys","1970s toys","1980s toys","1990s toys","2000s toys","2010s toys"],"limit":150,"kind":"iconic","weight":2},
-        {"cats":["Traditional toys","Wooden toys","Mechanical puzzles","Educational toys","Stuffed toys","Dolls","Construction toys","Physical activity and dexterity toys","Toy cars and trucks"],"limit":150},
-        {"template":"Infobox game","search":"board game","limit":100,"kind":"iconic"}
+        {"template":"Infobox toy","limit":250,"kind":"iconic","weight":3},
+        {"cats":["1950s toys","1960s toys","1970s toys","1980s toys","1990s toys","2000s toys","2010s toys"],"limit":200,"kind":"iconic","weight":2},
+        {"cats":["Traditional toys","Wooden toys","Mechanical puzzles","Educational toys","Stuffed toys","Dolls","Construction toys","Physical activity and dexterity toys","Toy cars and trucks","Toy brands","Spinning tops","Yo-yos","Kites"],"limit":200,"require":"\\btoys?\\b|doll|\\bgames?\\b|puzzle|figure|plaything|playset|kite|\\bball\\b|\\btop\\b|teddy|plush|stuffed|bricks|blocks|marbles?|yo-yo|hoop|rattle|figurine|model"},
+        {"template":"Infobox game","search":"board game","limit":150,"kind":"iconic"}
       ]
     },
     "vehicles": {
       "defaults": {"vibes":["sporty"],"moods":["adventurous"],"budget":"dream"},
       "sources": [
-        {"template":"Infobox automobile","limit":200,"kind":"iconic","weight":3},
+        {"template":"Infobox automobile","limit":250,"kind":"iconic","weight":3},
         {"template":"Infobox motorcycle","limit":100,"kind":"iconic"},
-        {"cats":["Motor scooters","Vespa","Mopeds","Microcars"],"limit":50,"kind":"iconic","defaults":{"budget":"splurge","vibes":["retro"]}},
-        {"cats":["Cycle types","Human-powered vehicles","Boat types","Sailboat types","Carriages","Sleds","Balloons (aeronautics)","Skateboarding equipment"],"limit":150,"kind":"generic","defaults":{"budget":"splurge"}},
-        {"template":"Infobox train","limit":50,"kind":"iconic"}
+        {"cats":["Motor scooters","Vespa","Mopeds","Microcars","Electric scooters","Kei cars"],"limit":100,"kind":"iconic","defaults":{"budget":"splurge","vibes":["retro"]}},
+        {"cats":["Cycle types","Human-powered vehicles","Boat types","Sailboat types","Carriages","Sleds","Balloons (aeronautics)","Skateboarding equipment","Canoes","Kayaks","Traditional boats","Animal-powered vehicles","Road cycles"],"limit":200,"kind":"generic","require":"bicycle|bike|\\bcycle|boat|ship\\b|vessel|yacht|canoe|kayak|carriage|coach|\\bcart\\b|wagon|sled|sledge|sleigh|toboggan|balloon|vehicle|\\bcraft\\b|watercraft|raft\\b|ferry|scooter|skateboard|tricycle|unicycle|rickshaw|sail","defaults":{"budget":"splurge"}}
       ]
     },
     "gadgets": {
       "kind": "iconic",
       "defaults": {"vibes":["futuristic"],"moods":["bold"],"budget":"splurge"},
       "sources": [
-        {"template":"Infobox information appliance","limit":150,"weight":2},
-        {"template":"Infobox mobile phone","limit":100},
-        {"template":"Infobox camera","limit":100,"defaults":{"vibes":["retro"]}},
-        {"cats":["Handheld game consoles","Home video game consoles","Portable media players","Digital audio players","E-readers","Smart speakers","Virtual reality headsets","Dedicated e-book devices"],"limit":100,"defaults":{"moods":["playful"]}},
+        {"template":"Infobox information appliance","limit":200,"weight":2},
+        {"template":"Infobox mobile phone","limit":150},
+        {"template":"Infobox camera","limit":150,"defaults":{"vibes":["retro"]}},
+        {"cats":["Handheld game consoles","Home video game consoles","Portable media players","Digital audio players","E-readers","Smart speakers","Virtual reality headsets","Dedicated e-book devices","Headphones","Wearable computers"],"limit":150,"defaults":{"moods":["playful"]},"require":"console|player|reader|speaker|headset|headphones|earbuds|device|tablet|computer|phone|camera|system"},
         {"template":"Infobox calculator","limit":50,"defaults":{"vibes":["retro"],"budget":"treat"}},
-        {"cats":["Office equipment","Navigational equipment","Optical devices","Audio players","Writing implements","Recording devices"],"limit":100,"kind":"generic","defaults":{"budget":"treat","vibes":["retro"],"moods":["calm"]}}
+        {"cats":["Office equipment","Navigational equipment","Optical devices","Audio players","Writing implements","Recording devices","Stationery","Measuring instruments"],"limit":150,"kind":"generic","require":"device|instrument|machine|\\bpens?\\b|pencil|typewriter|printer|copier|compass|telescope|binoculars|microscope|sextant|recorder|player|projector|calculator|stapler|ruler|scale\\b|gauge|meter\\b|tool","drop":"system\\b|network|radar","defaults":{"budget":"treat","vibes":["retro"],"moods":["calm"]}}
       ]
     },
     "home": {
       "defaults": {"vibes":["cosy"],"moods":["calm"],"budget":"treat"},
       "sources": [
-        {"deepcat":"Chairs","limit":150,"weight":2},
-        {"cats":["Individual models of furniture","Furniture","Tables (furniture)","Beds","Couches","Cabinets (furniture)","Seats","Furniture designs"],"limit":100},
-        {"cats":["Light fixtures","Types of lamp","Lamps","Candles","Lighting"],"limit":100,"require":"lamp|light|lantern|candle|chandelier|lighting"},
-        {"cats":["Teaware","Kitchenware","Cooking appliances","Drinkware","Cookware and bakeware","Serving and dining","Crockery","Eating utensils","Coffee preparation","Food preparation utensils"],"limit":150,"kind":"generic","defaults":{"budget":"everyday"}},
-        {"cats":["Decorative arts","Blankets","Rugs and carpets","Bedding","Vases","Mirrors","Home appliances","Garden features","Clocks"],"limit":100,"kind":"generic"}
+        {"cats":["Chairs","Individual models of furniture","Furniture","Tables (furniture)","Beds","Couches","Cabinets (furniture)","Seats","Stools","Desks","Furniture designs","Danish furniture","Modernist furniture"],"limit":250,"weight":2,"require":"chair|\\bseat\\b|stool|sofa|couch|bench|\\btable\\b|desk|\\bbed\\b|cabinet|furniture|shelf|shelving|wardrobe|dresser|cupboard|mattress|futon|ottoman|throne|bookcase|chest\\b|armoire|cradle|crib|hammock"},
+        {"cats":["Light fixtures","Types of lamp","Lamps","Candles","Lighting","Oil lamps","Lanterns"],"limit":150,"require":"lamp|\\blights?\\b|lantern|candle|chandelier|torch|candelabr|sconce|bulb"},
+        {"cats":["Teaware","Kitchenware","Cooking appliances","Drinkware","Cookware and bakeware","Crockery","Eating utensils","Food preparation utensils","Cooking vessels","Tableware","Spoons","Forks","Coffee preparation","Small appliances","Kitchen appliances"],"limit":250,"weight":2,"kind":"generic","require":"\\bpots?\\b|\\bpans?\\b|kettle|teapot|\\bcups?\\b|mug|\\bglass\\b|glassware|bowl|\\bplate\\b|tableware|utensil|cutlery|fork|spoon|knife|chopsticks|appliance|oven|stove|cooker|maker|machine|grinder|\\bpress\\b|vessel|container|\\bjars?\\b|bottle|flask|\\bjug\\b|pitcher|tray|strainer|ladle|whisk|grater|wok|skillet|samovar|toaster|blender|mixer|griddle|steamer|teacup|goblet|tumbler|tankard","defaults":{"budget":"everyday"}},
+        {"cats":["Rugs and carpets","Blankets","Bedding","Vases","Mirrors","Home appliances","Curtains","Pillows","Quilts","Tapestries","Cleaning tools","Laundry equipment","Heating, ventilation, and air conditioning","Garden tools"],"limit":200,"kind":"generic","require":"\\brugs?\\b|carpet|blanket|quilt|pillow|cushion|curtain|vase|mirror|appliance|duvet|bedding|tapestry|planter|machine|cleaner|heater|\\bfans?\\b|dryer|washer|refrigerator|freezer|dishwasher|\\biron\\b|broom|\\bmop\\b|bucket|comforter|bedspread|towel|\\btool\\b"}
       ]
     },
     "instruments": {
+      "drop": "signal processing|amplifier|effects unit",
       "defaults": {"vibes":["romantic"],"moods":["playful"],"budget":"splurge"},
       "sources": [
-        {"template":"Infobox instrument","limit":200,"kind":"generic","weight":3},
+        {"template":"Infobox instrument","limit":250,"kind":"generic","weight":3},
         {"template":"Infobox guitar model","limit":100,"kind":"iconic","defaults":{"vibes":["retro"],"moods":["bold"]}},
         {"template":"Infobox synthesizer","limit":100,"kind":"iconic","defaults":{"vibes":["futuristic","retro"],"moods":["bold"]}},
-        {"cats":["Fender electric guitars","Gibson electric guitars","Electric pianos","Drum machines","Individual violins","Stradivari instruments","Individual pianos","Individual guitars","Electric guitars"],"limit":100,"kind":"iconic"}
+        {"cats":["Fender electric guitars","Gibson electric guitars","Electric pianos","Drum machines","Individual violins","Stradivari instruments","Individual pianos","Individual guitars","Electric guitars","Keyboard instruments","Toy instruments and noisemakers"],"limit":150,"kind":"iconic"}
       ]
     }
   }

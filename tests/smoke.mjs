@@ -45,7 +45,7 @@ async function openGame(browser, { viewport, reducedMotion, catalog }) {
     seen.lookups += 1;
     return route.fulfill({ json: { thumbnail: { source: LOOKED_UP } }, headers: { 'access-control-allow-origin': '*' } });
   });
-  await page.route('https://upload.wikimedia.org/**', (route) => route.fulfill({ body: PIXEL, contentType: 'image/png' }));
+  await page.route(/^https:\/\/(upload|thumb)\.wikimedia\.org\//, (route) => route.fulfill({ body: PIXEL, contentType: 'image/png' }));
   if (catalog) {
     await page.route('**/data/catalog/*.json', (route) => {
       const name = new URL(route.request().url()).pathname.split('/').pop();

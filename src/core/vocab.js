@@ -76,6 +76,7 @@ export function itemProblems(item) {
   if (typeof item.id === 'string' && !item.id.startsWith(`${item.category}/`)) problems.push('id does not match category');
   if (!KINDS.includes(item.kind)) problems.push(`unknown kind ${item.kind}`);
   if (typeof item.blurb !== 'string' || !item.blurb.trim()) problems.push('missing blurb');
+  if (item.about != null && typeof item.about !== 'string') problems.push('bad about');
   if (!subset(item.vibes, VIBES)) problems.push('bad vibes');
   if (!subset(item.moods, MOODS)) problems.push('bad moods');
   if (!subset(item.colours, COLOUR_IDS)) problems.push('bad colours');

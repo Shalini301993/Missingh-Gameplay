@@ -47,9 +47,10 @@ The catalog lives in `data/catalog/`, one file per category. It is built from tw
 - **Seeds** (`data/seeds/*.json`) – about 150 hand-written, hand-tagged objects. Edit these files to
   add your own.
 - **Wikipedia** – `scripts/catalog/build.mjs` runs the searches listed in
-  `scripts/catalog/sources.json`, keeps pages that are objects (not people, companies or lists),
-  tags them by keyword, and takes turns across the sources so each one is represented. Within a
-  category the most-read pages become legendary and rare.
+  `scripts/catalog/sources.json`, keeps pages that are objects (not people, companies, places,
+  events or anything unsuitable for an all-ages game), tags them by keyword, and takes turns across
+  the sources so each one is represented. Within a category the most-read pages become legendary
+  and rare.
 
 The *Build catalog* workflow runs the generator and commits the result whenever the seeds or the
 generator change, or when you run it by hand from the **Actions** tab. Each build also writes
@@ -59,8 +60,13 @@ place to look when tuning `sources.json`.
 ```bash
 node scripts/catalog/build.mjs            # seeds + Wikipedia (needs internet)
 node scripts/catalog/build.mjs --offline  # seeds only
+node scripts/catalog/build.mjs --refilter # re-apply the rules to the existing catalog, no internet
 node scripts/catalog/validate.mjs         # check the catalog files
 ```
+
+Spotted something that should not be there? Add its Wikipedia page title to the `exclude` list at
+the top of `sources.json` and run `--refilter`; it is removed straight away and stays out of
+future builds.
 
 ### Adding sources
 
@@ -78,9 +84,11 @@ Each line in a category's `sources` list is one Wikipedia search:
 - `limit` – how many results to look at, most popular first.
 - Optional: `kind` (`iconic` or `generic`), `weight` (a bigger share of the category), `defaults`
   (tags to fall back on), `require` / `drop` (patterns a page must or must not match),
-  `allowOrganisations`, `allowNoImage`.
+  `allowOrganisations`, `allowNoImage`. A `require` set on a category applies to all its sources.
 
-`perCategoryCap` at the top of the file sets how many items each category may hold.
+At the top of the file, `perCategoryCap` sets how many items each category may hold and
+`perFamilyCap` how many may start with the same word, so that one product line (every iPhone,
+every Toyota) cannot crowd out the rest.
 
 To see what a search returns before adding it, without changing anything:
 

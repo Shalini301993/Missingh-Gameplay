@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createApi, OutOfTime, sourceQuery, rejectReason, guessKind, tagItem, tidyBlurb, pickBalanced, assignRarity,
-  displayTitle, loadSeeds, build, reportMarkdown,
+  displayTitle, properTitle, familyOf, loadSeeds, build, reportMarkdown,
 } from '../scripts/catalog/build.mjs';
 import { validateCatalog } from '../scripts/catalog/validate.mjs';
 import { itemProblems, slugify, CATEGORY_IDS } from '../src/core/vocab.js';
@@ -42,7 +42,19 @@ test('pages that are not objects are rejected', () => {
   assert.equal(rejectReason(page()), null);
   assert.equal(rejectReason(page({ thumbnail: undefined })), 'no-image');
   assert.equal(rejectReason(page({ thumbnail: undefined }), { allowNoImage: true }), null);
-  assert.equal(rejectReason(page({ title: 'List of perfumes' })), 'list-page');
+  assert.equal(rejectReason(page({ title: 'List of perfumes' })), 'topic-page');
+  for (const title of ['Shoe size', 'Sneaker collecting', 'Moving sofa problem', 'Plastic bag ban', 'Winter time', 'Clock position']) {
+    assert.equal(rejectReason(page({ title })), 'topic-page', title);
+  }
+  assert.equal(rejectReason(page({ title: 'Ray-Ban' })), null);
+  // The title of a named work or product is not judged: only what it is described as.
+  const crime = page({ title: 'Crime and Punishment', description: '1866 novel by Fyodor Dostoevsky' });
+  assert.equal(rejectReason(crime), 'unsuitable');
+  assert.equal(rejectReason(crime, { named: true }), null);
+  assert.equal(rejectReason(page({ title: 'The Three-Body Problem', description: '2008 science fiction novel' }), { named: true }), null);
+  assert.equal(rejectReason(page({ title: 'Epiphone Casino', description: 'Hollow-body electric guitar' }), { named: true }), null);
+  assert.equal(rejectReason(page({ title: 'Hash oil', description: 'Cannabis concentrate' }), { named: true }), 'unsuitable');
+  assert.equal(rejectReason(page({ title: 'Golliwog' }), { exclude: new Set(['golliwog']) }), 'excluded');
   assert.equal(rejectReason(page({ pageprops: { disambiguation: '' } })), 'disambiguation');
   assert.equal(rejectReason(page({ description: '' })), 'no-description');
   assert.equal(rejectReason(page({ description: 'French fashion designer' })), 'person');
@@ -52,10 +64,65 @@ test('pages that are not objects are rejected', () => {
   assert.equal(rejectReason(page({ description: 'Swiss luxury watchmaker' })), 'organisation');
   assert.equal(rejectReason(page({ description: 'American clothing company' }), { allowOrganisations: true }), null);
   assert.equal(rejectReason(page({ description: '1999 film' })), 'not-a-thing');
+  assert.equal(rejectReason(page({ description: 'Ancient Greek deity' })), 'not-a-thing');
+  assert.equal(rejectReason(page({ description: 'Label sizes used for garments sold off-the-shelf' })), 'not-a-thing');
+  assert.equal(rejectReason(page({ description: 'Toy line based on the television series' })), null);
+  assert.equal(rejectReason(page({ description: 'Home video game console developed by Nintendo' })), null);
+  assert.equal(rejectReason(page({ description: '2001 video game' })), 'not-a-thing');
+  assert.equal(rejectReason(page({ description: 'Sport utility vehicle' })), null);
+  assert.equal(rejectReason(page({ description: 'Sports car manufactured by German automobile manufacturer Porsche' })), null);
+  assert.equal(rejectReason(page({ description: '1963 fragrance by Estée Lauder Companies' })), null);
+  assert.equal(rejectReason(page({ description: 'German automobile manufacturer' })), 'organisation');
+  assert.equal(rejectReason(page({ description: 'Garment used for restraining people' })), 'unsuitable');
   assert.equal(rejectReason(page({ description: 'type of assault rifle' })), 'unsuitable');
   assert.equal(rejectReason(page({ description: 'unisex garment' })), null);
+  // People, including ones whose description gives no dates.
+  assert.equal(rejectReason(page({ description: 'President of the United States from 1933 to 1945' })), 'person');
+  assert.equal(rejectReason(page({ description: 'Governor of Texas since 2015' })), 'person');
+  assert.equal(rejectReason(page({ cirrusdoc: [{ source: { category: ['Chairs', '1882 births'] } }] })), 'person');
+  assert.equal(rejectReason(page({ cirrusdoc: [{ source: { category: ['Living people'] } }] })), 'person');
+  assert.equal(rejectReason(page({ description: 'Car model' })), null);
+  assert.equal(rejectReason(page({ description: 'Electric guitar model' })), null);
+  assert.equal(rejectReason(page({ description: 'King-size mattress' })), null);
+  // Adult or grim content, even when only the intro gives it away.
+  for (const description of ['Ring worn around the penis', 'Type of undergarment', 'Exposure of a thong above trousers',
+    'Nickname of electric chairs', 'Bag designed to contain a human body', 'Form of corporal punishment', 'Racist caricature doll']) {
+    assert.equal(rejectReason(page({ description })), 'unsuitable', description);
+  }
+  assert.equal(rejectReason(page({ description: 'Brand of electric massager',
+    cirrusdoc: [{ source: { opening_text: 'It is best known for its use as a sex toy.' } }] })), 'unsuitable');
+  assert.equal(rejectReason(page({ title: 'Shirt', description: 'Garment for the upper body',
+    cirrusdoc: [{ source: { opening_text: 'Originally an undergarment worn exclusively by men, it has become an outer garment.' } }] })), null);
+  assert.equal(rejectReason(page({ description: 'Belted waterproof coat',
+    cirrusdoc: [{ source: { opening_text: 'The trench coat was developed for British Army officers.' } }] })), null);
+  // Shops, places, foods, styles, characters and other non-objects.
+  for (const description of ['American footwear retailer', 'Town in Bedfordshire, England', 'Japanese dish', 'Coffee made from part-digested beans',
+    'Style of visual arts', 'Fictional character from Toy Story', 'Japanese media franchise', 'Mobile operating system', 'Winter sport',
+    'Species of flowering plant', 'Symbolic clock', 'Facetious communication protocol', 'Chemical compound', '2010 single', 'Fashion label',
+    'Chapel in Paris', 'Telephone service', 'Occupation', 'Person who cleans shoes']) {
+    assert.notEqual(rejectReason(page({ description }), { allowOrganisations: true }), null, description);
+  }
+  // …without throwing out real objects that happen to use the same words.
+  for (const description of ['35 mm film camera', 'Mid-size car', 'Full-size pickup truck', 'Concept car', 'Single-seat sports car',
+    'Mountain bike', 'Electric city car', 'Custom motorcycle', 'Brand of activity trackers', 'Building blocks', 'Stuffed toy animal',
+    'Food processor', 'Coffee maker', 'Smart television', 'Type of hat', 'Style of hat', 'Photo album cover', 'Line of smartphones']) {
+    assert.equal(rejectReason(page({ description })), null, description);
+  }
   assert.equal(rejectReason(page(), { require: 'novel' }), 'source-require');
   assert.equal(rejectReason(page(), { drop: 'object' }), 'source-drop');
+});
+
+test('titles are tidied and grouped into families', () => {
+  assert.equal(properTitle('IPhone 13'), 'iPhone 13');
+  assert.equal(properTitle('IPad Mini'), 'iPad Mini');
+  assert.equal(properTitle('Dune (novel)', '<i>Dune</i> (novel)'), 'Dune (novel)');
+  assert.equal(properTitle('EBay', 'eBay'), 'eBay');
+  assert.equal(properTitle('Kimono', 'Something else'), 'Kimono');
+  assert.equal(familyOf('IPhone 13'), 'iphone');
+  assert.equal(familyOf('HP-12C'), 'hp');
+  assert.equal(familyOf('TI-83 series'), 'ti');
+  assert.equal(familyOf('The Lord of the Rings'), 'lord');
+  assert.equal(familyOf('Toyota Corolla'), 'toyota');
 });
 
 test('named products are told apart from kinds of thing', () => {
@@ -81,6 +148,8 @@ test('blurbs are tidied and titles lose their disambiguator', () => {
   assert.equal(tidyBlurb('', 'perfume by Chanel'), 'Perfume by Chanel');
   assert.equal(tidyBlurb('The Tamagotchi (Japanese: たまごっち) is a handheld digital pet , created in Japan.'),
     'The Tamagotchi is a handheld digital pet, created in Japan.');
+  assert.equal(tidyBlurb('This article contains special characters. Without proper rendering support, you may see question marks, boxes, or other symbols. The kimono (着物; lit. \'thing to wear\') is a traditional Japanese garment.'),
+    'The kimono is a traditional Japanese garment.');
   const long = `${'Word '.repeat(40)}end. ${'More '.repeat(60)}`;
   assert.ok(tidyBlurb(long).endsWith('end.'));
   // Does not stop at an abbreviation such as "No." when a real sentence end is available.
@@ -188,15 +257,18 @@ function fakeWikipedia() {
       return { query: { pages: String(params.titles).split('|').map((title, i) => ({ pageid: 9000 + i, title, thumbnail: { source: 'https://img/seed.jpg' } })) } };
     },
     async search() {
-      const words = 'novel shoe bag luggage device clock lamp object';
+      // One description that names something every category asks for.
+      const words = 'garment shoe perfume novel bag luggage scarf hat jewel glasses diamond watch toy bicycle device chair lamp pot rug guitar';
       const base = serial * 10;
       serial += 1;
+      // Each title starts with its own word, so none of them count as one family.
+      const tag = String.fromCharCode(97 + (serial % 26)) + String.fromCharCode(97 + Math.floor(serial / 26));
       return { error: null, pages: [
-        { pageid: base + 1, index: 1, title: `Famous thing ${serial}`, description: words, thumbnail,
+        { pageid: base + 1, index: 1, title: `Fam${tag} famous thing`, description: words, thumbnail,
           cirrusdoc: [{ source: { opening_text: 'Opening text from the search index, comfortably long enough to be a blurb.', popularity_score: 0.001 * serial } }] },
-        { pageid: base + 2, index: 2, title: `Some person ${serial}`, description: 'French fashion designer', thumbnail },
+        { pageid: base + 2, index: 2, title: `Per${tag} person`, description: 'French fashion designer', thumbnail },
         { pageid: base + 3, index: 3, title: 'Chanel No. 5', description: words, thumbnail },
-        { pageid: base + 4, index: 4, title: `Plain thing ${serial}`, description: words, thumbnail },
+        { pageid: base + 4, index: 4, title: `Pla${tag} plain thing`, description: words, thumbnail },
       ] };
     },
   };
@@ -218,6 +290,7 @@ test('a full build against a fake Wikipedia yields a valid catalog', async () =>
   assert.ok(generated.some((i) => i.blurb.startsWith('Fetched intro for page')), 'intro text is fetched when the search has none');
   assert.ok(generated.some((i) => i.rarity === 'legendary') && generated.some((i) => i.rarity === 'common'));
   assert.ok(!items.some((i) => 'score' in i || 'popularity' in i));
+  assert.ok(generated.every((i) => i.about.startsWith('Garment shoe')), 'the short description is kept as "about"');
   const markdown = reportMarkdown([{ id: 'toys', count: 3 }], report, { requests: 9, limited: 1, waitedMs: 120000 });
   assert.match(markdown, /# Catalog build: 3 items/);
   assert.match(markdown, /told to slow down 1 times, waited 2 min/);
