@@ -35,10 +35,14 @@ Then open <http://localhost:8080/>. Any static file server works; there is no bu
 
 ## Put it on GitHub Pages
 
-1. In the repository, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
-2. Merge this branch into `main`.
+1. Merge this branch into `main`.
+2. In the repository, go to **Settings → Pages** and pick either source:
+   - **Deploy from a branch** → `main`, folder `/ (root)`. GitHub publishes the repository as it
+     is; the site needs no build step.
+   - **GitHub Actions**. The *Deploy to GitHub Pages* workflow then publishes just the game files
+     on every push to `main`, after checking the catalog.
 
-The *Deploy to GitHub Pages* workflow publishes the site on every push to `main`.
+Either way the game appears at `https://<your-user>.github.io/<repository>/` a minute or two later.
 
 ## The catalog
 
