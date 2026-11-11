@@ -169,7 +169,8 @@ export function sourceQuery(source) {
 // president who used a wheelchair and a puzzle about sofas. These rules keep the objects.
 
 // Titles that are about a subject rather than being a thing.
-const TOPIC_TITLE = /^(List|Lists|Timeline|History|Outline|Index|Glossary|Comparison|Culture|Types) of\b|\s(sizes?|collecting|making|weaving|handling|allowance|ban|problem|hoax|spill|flight|ceremony|prescription|time|industry|fashion|controversy|position)$/i;
+const LIST_TITLE = /^(List|Lists|Timeline|History|Outline|Index|Glossary|Comparison|Culture|Types) of\b/i;
+const TOPIC_TITLE = /\s(sizes?|collecting|making|weaving|handling|allowance|ban|problem|hoax|spill|flight|ceremony|prescription|time|industry|fashion|controversy|position)$/i;
 
 // Never right for an all-ages game, wherever it turns up (title, description or intro).
 const ADULT = /\b(sex|sexual\w*|sex toys?|erotic\w*|fetish\w*|bdsm|bondage|vibrators?|dildos?|pornograph\w*|genital\w*|penis|vagina\w*|pubic|orgasm\w*|masturbat\w*|condoms?|upskirt|voyeur\w*|prostitut\w*|brothel|striptease|strippers?|rape[ds]?|incest\w*|pa?edophil\w*|molest\w*)\b/i;
@@ -177,7 +178,7 @@ const ADULT = /\b(sex|sexual\w*|sex toys?|erotic\w*|fetish\w*|bdsm|bondage|vibra
 const INTIMATE = /\b(nud(e|ity)|naked|buttocks|breasts|lingerie|g-string|thongs?|undergarments?|underwear|brassieres?|panties|diapers?)\b/i;
 
 // Not suitable when it is what the page is about (title or description).
-const UNSUITABLE = /\b(weapons?|firearms?|rifles?|pistols?|guns?|swords?|daggers?|tobacco|cigarettes?|cigars?|vap(e|ing)|missiles?|bombs?|warfare|military|army|naval|navy|warships?|nazi|narcotics?|cannabis|hash|heroin|cocaine|alcoholic|gambling|casino|torture|execut(ed|ion|ions)|electric chairs?|punish\w*|corporal|penance|penitent\w*|mortification|restrain(t|ts|ing)?|straitjacket|handcuffs?|shackles?|guillotine|gallows|slave\w*|racis\w*|caricature|blackface|supremac\w*|genocide|holocaust|suicide|murder\w*|corpses?|cadavers?|human bod(y|ies)|foot binding|bound feet|hoax|conspiracy|haunted|paranormal|voodoo|outlaw|criminal)\b/i;
+const UNSUITABLE = /\b(weapons?|firearms?|rifles?|pistols?|guns?|swords?|daggers?|tobacco|cigarettes?|cigars?|vap(e|ing)|missiles?|bombs?|warfare|military|army|naval|navy|warships?|nazi|narcotics?|cannabis|hash|heroin|cocaine|alcoholic|gambling|casino|torture|execut(ed|ion|ions)|electric chairs?|punish\w*|corporal|penance|penitent\w*|mortification|restrain(t|ts|ing)?|straitjacket|handcuffs?|shackles?|guillotine|gallows|slave\w*|racis\w*|caricature|blackface|supremac\w*|genocide|holocaust|suicide|murder\w*|corpses?|cadavers?|human bod(y|ies)|foot binding|bound feet|hoax|conspiracy|haunted|paranormal|voodoo|outlaw|criminal|schutzstaffel|himmler|hitler|third reich|swastika|fascis\w*|poker|bookmaking|betting)\b|\bSS-/i;
 
 // People are recognised by their Wikipedia categories ("1884 births", "Living people") and,
 // failing that, by a description that leads with a role or carries life dates.
@@ -192,12 +193,12 @@ const RETAIL = /\b(retailers?|retail|department store|supermarket|chain of|store
 // What a description says the page is, when that is not a physical thing. The first list matches
 // anywhere in the head of the description, the second only where the head ends, so that
 // "1999 film" is rejected but "film camera" is not, and "winter sport" but not "sports car".
-const NOT_A_THING = /\b(tv series|television (series|show|program|programme|network|channel|film|drama|special)|episode|website|festival|trade fair|exhibition|subculture|genre|disambiguation|wikimedia|act of|profession|occupation|craft of|art of|process|processing|technique|classification|sizes|measurement|theory|phenomenon|(art|social|cultural|political|design) movement|visual arts?|architecture|revolution|ceremony|ritual|tradition|manner of|martial art|operating system|software|web browser|programming language|protocol|video games?(?! (console|system|controller|accessor))|franchise|fictional|deity|god|goddess|mytholog\w*|mystical|species|genus|flowering plant|church|chapel|cathedral|palace|statue|sculpture|painting|battalion|regiment|incident|accident|disaster|scandal|court case|cuisine|beverage|appetizer|dessert|chemical|spice|shrub|mineral|alloy|symbol\w*|emblem|slogan|phrase|idiom|person who|people who|paradox|(city|town|village|borough|province|river|mountain|island|country) in)\b|^(term|word|name|nickname)\b/i;
+const NOT_A_THING = /\b(tv series|television (series|show|program|programme|network|channel|film|drama|special)|episode|website|festival|trade fair|exhibition|subculture|genre|disambiguation|wikimedia|act of|profession|occupation|craft of|art of|process|processing|technique|classification|sizes|measurement|theory|phenomenon|(art|social|cultural|political|design) movement|visual arts?|architecture|revolution|ceremony|ritual|tradition|manner of|martial art|operating system|software|web browser|programming language|protocol|video games?(?! (console|system|controller|accessor))|franchise|fictional|deity|god|goddess|mytholog\w*|mystical|species|genus|flowering plant|church|chapel|cathedral|palace|statue|sculpture|painting|battalion|regiment|incident|accident|disaster|scandal|court case|cuisine|beverage|appetizer|dessert|chemical|spice|shrub|mineral|alloy|symbol\w*|emblem|slogan|phrase|idiom|person who|people who|paradox|(city|town|village|borough|province|river|mountain|island|country) in)\b|etiquette|religious order|^(term|word|name|nickname)\b/i;
 const NOT_A_THING_AT_END = /\b(films?|albums?|songs?|singles?|magazines?|awards?|industry|law|term|concepts?|methods?|activit(y|ies)|pastime|hobby|sports?|customs?|practice|service|labels?|marks?|characters?|plants?|fruits?|trees?|herbs?|compounds?|dish(es)?|meals?|drinks?|snacks?|coffee|index|temperature|variance|problems?|trials?|affairs?|city|town|village|country)$/i;
 
 // A description's head is what the thing is, before "by …", "from …", "used for …" and the like.
 // "Sports car manufactured by the manufacturer Porsche" is a car; "German car manufacturer" is not.
-const AFTER_HEAD = /\b(by|from|for|based|adapted|made|produced|manufactured|designed|developed|marketed|sold|owned|created|featuring|used|worn|introduced|released|endorsed)\b/i;
+const AFTER_HEAD = /\s(by|from|for|based|adapted|made|produced|manufactured|designed|developed|marketed|sold|owned|created|featuring|used|worn|introduced|released|endorsed)\b/i;
 const headOf = (description) => description.split(AFTER_HEAD)[0].replace(/[\s,;:]+$/, '');
 
 // Why a page is not wanted, or null when it is. `page` is a search result; `options` are the
@@ -212,7 +213,7 @@ export function rejectReason(page, { allowOrganisations = false, allowNoImage = 
   const head = headOf(description);
   if (page.missing || page.invalid) return 'missing';
   if (page.pageprops && 'disambiguation' in page.pageprops) return 'disambiguation';
-  if (!named && TOPIC_TITLE.test(displayTitle(page.title))) return 'topic-page';
+  if (LIST_TITLE.test(page.title) || (!named && TOPIC_TITLE.test(displayTitle(page.title)))) return 'topic-page';
   if (exclude?.has(page.title.toLowerCase())) return 'excluded';
   if (!allowNoImage && !page.thumbnail?.source) return 'no-image';
   if (!description) return 'no-description';
@@ -614,8 +615,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const offline = args.includes('--offline');
   try {
     if (args.includes('--refilter')) {
+      const before = JSON.parse(await readFile(path.join(ROOT, 'data/catalog/index.json'), 'utf8')).total;
       const manifest = await writeCatalog(await refilter(), { offline: false });
-      console.log(`Kept ${manifest.total} items.`);
+      console.log(`Kept ${manifest.total} of ${before} items.`);
+      if (manifest.total < before) {
+        await appendFile(path.join(ROOT, 'data/catalog-report.md'),
+          `\nRe-filtered on ${manifest.built}: ${before - manifest.total} items removed by the rules and exclude list, ${manifest.total} kept.\n`);
+      }
     } else if (args.includes('--probe')) {
       const queries = (args[args.indexOf('--probe') + 1] ?? '').split(';;').map((query) => query.trim()).filter(Boolean);
       if (!queries.length) throw new Error('Give --probe a search, e.g. --probe \'deepcat:"Hats"\'');

@@ -47,6 +47,7 @@ test('pages that are not objects are rejected', () => {
     assert.equal(rejectReason(page({ title })), 'topic-page', title);
   }
   assert.equal(rejectReason(page({ title: 'Ray-Ban' })), null);
+  assert.equal(rejectReason(page({ title: 'List of diamonds' }), { named: true }), 'topic-page');
   // The title of a named work or product is not judged: only what it is described as.
   const crime = page({ title: 'Crime and Punishment', description: '1866 novel by Fyodor Dostoevsky' });
   assert.equal(rejectReason(crime), 'unsuitable');
@@ -86,7 +87,8 @@ test('pages that are not objects are rejected', () => {
   assert.equal(rejectReason(page({ description: 'King-size mattress' })), null);
   // Adult or grim content, even when only the intro gives it away.
   for (const description of ['Ring worn around the penis', 'Type of undergarment', 'Exposure of a thong above trousers',
-    'Nickname of electric chairs', 'Bag designed to contain a human body', 'Form of corporal punishment', 'Racist caricature doll']) {
+    'Nickname of electric chairs', 'Bag designed to contain a human body', 'Form of corporal punishment', 'Racist caricature doll',
+    'SS ring awarded by Heinrich Himmler', 'Coveted prize in poker', 'Bag used in bookmaking']) {
     assert.equal(rejectReason(page({ description })), 'unsuitable', description);
   }
   assert.equal(rejectReason(page({ description: 'Brand of electric massager',
@@ -99,7 +101,8 @@ test('pages that are not objects are rejected', () => {
   for (const description of ['American footwear retailer', 'Town in Bedfordshire, England', 'Japanese dish', 'Coffee made from part-digested beans',
     'Style of visual arts', 'Fictional character from Toy Story', 'Japanese media franchise', 'Mobile operating system', 'Winter sport',
     'Species of flowering plant', 'Symbolic clock', 'Facetious communication protocol', 'Chemical compound', '2010 single', 'Fashion label',
-    'Chapel in Paris', 'Telephone service', 'Occupation', 'Person who cleans shoes']) {
+    'Chapel in Paris', 'Telephone service', 'Occupation', 'Person who cleans shoes', 'Linux-based mobile operating system',
+    'Religious order whose members go barefoot']) {
     assert.notEqual(rejectReason(page({ description }), { allowOrganisations: true }), null, description);
   }
   // …without throwing out real objects that happen to use the same words.

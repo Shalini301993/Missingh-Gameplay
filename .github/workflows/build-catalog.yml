@@ -1,5 +1,8 @@
 # Rebuilds data/catalog/ from the seeds plus Wikipedia and commits the result to the same branch.
 #
+# It runs only when you start it (Actions tab → Build catalog → Run workflow), so the catalog in the
+# repository changes only when you ask for it. Run it after editing the seeds or sources.json.
+#
 # Wikipedia limits how fast unidentified scripts may ask, so a full build takes a while: it waits
 # whenever it is told to slow down. To identify the build to Wikipedia (which they ask for, and which
 # may lift the limit), set a repository variable named CATALOG_USER_AGENT, for example
@@ -9,16 +12,15 @@ name: Build catalog
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'rebuild = fetch from Wikipedia again (about 15 minutes); refilter = only re-apply the rules and exclude list (seconds)'
+        type: choice
+        options: [rebuild, refilter]
+        default: rebuild
       probe:
         description: 'Only try out searches and write nothing (separate several with ;;)'
         required: false
         default: ''
-  push:
-    paths:
-      - 'scripts/catalog/**'
-      - 'data/seeds/**'
-      - 'src/core/vocab.js'
-      - '.github/workflows/build-catalog.yml'
 
 permissions:
   contents: write
@@ -48,7 +50,7 @@ jobs:
         run: node scripts/catalog/build.mjs --probe "$PROBE"
       - name: Build catalog from seeds and Wikipedia
         if: ${{ !inputs.probe }}
-        run: node scripts/catalog/build.mjs
+        run: node scripts/catalog/build.mjs ${{ inputs.mode == 'refilter' && '--refilter' || '' }}
       - name: Validate catalog
         if: ${{ !inputs.probe }}
         run: node scripts/catalog/validate.mjs --min 1000

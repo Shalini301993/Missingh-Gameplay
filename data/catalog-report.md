@@ -68,3 +68,5 @@ Wikipedia requests: 174, told to slow down 15 times, waited 11 min.
 | instruments | hastemplate:"Infobox guitar model" | 100 | 40 | 21 | duplicate 2, no-image 24, too-many-alike 31, not-a-thing 1, person 2 |  |
 | instruments | hastemplate:"Infobox synthesizer" | 100 | 54 | 21 | duplicate 1, too-many-alike 27, no-image 15, source-drop 1, person 1, no-description 1 |  |
 | instruments | incategory:"Fender electric guitars / Gibson electric guitars / Electric pianos / Drum machines / Individual violins / Stradivari instruments / Individual pianos / Individual guitars / Electric guitars / Keyboard instruments / Toy instruments and noisemakers" | 150 | 54 | 21 | duplicate 43, no-image 21, source-drop 4, person 3, excluded 1, organisation 1, too-many-alike 21, not-a-thing 1, no-description 1 |  |
+
+Re-filtered on 2026-11-11: 67 items removed by the rules and exclude list, 1557 kept.

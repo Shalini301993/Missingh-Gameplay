@@ -52,10 +52,14 @@ The catalog lives in `data/catalog/`, one file per category. It is built from tw
   the sources so each one is represented. Within a category the most-read pages become legendary
   and rare.
 
-The *Build catalog* workflow runs the generator and commits the result whenever the seeds or the
-generator change, or when you run it by hand from the **Actions** tab. Each build also writes
+The *Build catalog* workflow runs the generator on GitHub and commits the result. It runs only when
+you start it (**Actions → Build catalog → Run workflow**), so the catalog changes only when you ask
+for it. Run it after editing the seeds or `sources.json`. Each build also writes
 `data/catalog-report.md`, which shows how many items every search found, kept and used. That is the
 place to look when tuning `sources.json`.
+
+A rebuild samples Wikipedia afresh, so it can bring in pages nobody has looked at yet. Skim the new
+entries afterwards and exclude anything that does not belong (see below).
 
 ```bash
 node scripts/catalog/build.mjs            # seeds + Wikipedia (needs internet)
@@ -65,8 +69,8 @@ node scripts/catalog/validate.mjs         # check the catalog files
 ```
 
 Spotted something that should not be there? Add its Wikipedia page title to the `exclude` list at
-the top of `sources.json` and run `--refilter`; it is removed straight away and stays out of
-future builds.
+the top of `sources.json` and run `--refilter` (or run the workflow with *mode* set to *refilter*,
+which takes seconds); it is removed straight away and stays out of future builds.
 
 ### Adding sources
 

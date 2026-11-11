@@ -2,11 +2,22 @@
   "perCategoryCap": 140,
   "perFamilyCap": 5,
   "exclude": [
-    "Golliwog", "The Turner Diaries", "The Camp of the Saints", "Mein Kampf", "Clock tower", "Doomsday Clock",
-    "This machine kills fascists", "Sagging (fashion)", "Tea bag", "Airbag", "Ballot box", "Post box", "Body piercing",
-    "Tattoo", "Crown of thorns", "Tin foil hat", "Black Watch", "Ark of the Covenant", "Annabelle (doll)",
-    "Friendly Floatees spill", "Voodoo doll", "Nyotaimori", "Ballet boot", "Hitachi Magic Wand", "Lotus shoe", "Slippering",
-    "Big Nose George", "Drinking from shoes", "Old Sparky", "Ducking stool", "Medbed", "Body bag"
+    "Airbag", "Allan variance", "Annabelle (doll)", "Ark of the Covenant", "Baggage car", "Ballet boot",
+    "Ballot box", "Bandolier", "Barrage balloon", "Bedroom", "Benzyl alcohol", "Bicycle suspension",
+    "Big Nose George", "Black belt", "Body bag", "Body piercing", "Booster bag", "Breeching (boys)",
+    "Business casual", "Cabinetry", "Cilice", "Climate Clock", "Clock bag", "Clock tower", "Codpiece",
+    "Color rendering index", "Color temperature", "Compressor", "Cosmetics", "Craps", "Crown of thorns",
+    "D Line Extension", "Discalced", "Distortion (music)", "Doomsday Clock", "Drinking from shoes", "Ducking stool",
+    "Eating utensil etiquette", "Ejection seat", "Enfleurage", "Flare", "Fragrance wheel", "Friendly Floatees spill",
+    "Game Boy Player", "Golliwog", "Hatmaking", "Hitachi Magic Wand", "Induction cooking", "Kite experiment",
+    "Lac (resin)", "Lighting", "List of Barbie's friends and family", "List of diamonds", "Lotus shoe",
+    "Luggage label", "Luxo Jr. (character)", "Medbed", "Mein Kampf", "Mirror test", "Note (perfumery)", "Nyotaimori",
+    "Old Sparky", "Packet (container)", "Points of the compass", "Pollination bag", "Post box", "Power Balance",
+    "PT boat", "Purity ring", "Pussy bow", "Pussyhat", "Quartz crisis", "Real-time clock", "Resin", "Rosin",
+    "Sagging (fashion)", "Shellac", "Sillage (perfume)", "Slippering", "Smart casual", "Sneaker collecting",
+    "Socks and sandals", "SS-Ehrenring", "Tattoo", "Tea bag", "The Camp of the Saints", "The Turner Diaries",
+    "This machine kills fascists", "Tin foil hat", "Tizen", "To hell in a handbasket", "Turpentine", "Upholstery",
+    "Voodoo doll", "Water Resistant mark", "Wearable technology", "World Series of Poker bracelet", "Xbox"
   ],
   "categories": {
     "clothing": {
@@ -84,7 +95,7 @@
       ]
     },
     "toys": {
-      "drop": "console|handheld|video game",
+      "drop": "console|handheld|video game|gaming",
       "defaults": {"vibes":["whimsical"],"moods":["playful"],"budget":"everyday"},
       "sources": [
         {"template":"Infobox toy","limit":250,"kind":"iconic","weight":3},
