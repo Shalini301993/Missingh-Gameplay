@@ -1,67 +1,67 @@
 {
   "built": "2026-11-11",
-  "source": "seeds",
-  "total": 152,
+  "source": "seeds+wikipedia",
+  "total": 1680,
   "categories": [
     {
       "id": "clothing",
       "file": "clothing.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "shoes",
       "file": "shoes.json",
-      "count": 12
+      "count": 140
     },
     {
       "id": "perfumes",
       "file": "perfumes.json",
-      "count": 12
+      "count": 140
     },
     {
       "id": "books",
       "file": "books.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "bags",
       "file": "bags.json",
-      "count": 12
+      "count": 140
     },
     {
       "id": "accessories",
       "file": "accessories.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "watches",
       "file": "watches.json",
-      "count": 12
+      "count": 140
     },
     {
       "id": "toys",
       "file": "toys.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "vehicles",
       "file": "vehicles.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "gadgets",
       "file": "gadgets.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "home",
       "file": "home.json",
-      "count": 13
+      "count": 140
     },
     {
       "id": "instruments",
       "file": "instruments.json",
-      "count": 13
+      "count": 140
     }
   ]
 }
