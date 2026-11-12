@@ -47,7 +47,9 @@ function createMachine() {
     const scene = new MachineScene({ onLever: () => pull(), reducedMotion });
     // eslint-disable-next-line no-new
     new Phaser.Game({
-      type: Phaser.AUTO,
+      // The plain 2D canvas is plenty for a few flat shapes and works without WebGL. It also avoids a
+      // glitch seen in testing, where a WebGL canvas peeking out above an open card was drawn wrongly.
+      type: Phaser.CANVAS,
       parent: 'stage',
       width: STAGE.width * STAGE.zoom,
       height: STAGE.height * STAGE.zoom,
