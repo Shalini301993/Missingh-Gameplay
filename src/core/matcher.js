@@ -1,6 +1,7 @@
 // Scoring and weighted random selection. Pure functions; `rng` is any () => [0, 1).
 
 import { BUDGET_IDS, RARITY_IDS } from './vocab.js';
+import { tasteFactor } from './taste.js';
 
 export const WILDCARD_CHANCE = 0.15;
 export const OWNED_PENALTY = 0.35;
@@ -41,17 +42,21 @@ export function tierFallback(rarity) {
 
 // Draws one item of (ideally) the given rarity.
 // `owned` is a Set of item ids the player already has; those are less likely but still possible.
-export function draw({ items, rarity, profile, owned = new Set(), rng = Math.random }) {
+// `taste` is what the player has taught the game (see taste.js); objects they hid never come back.
+export function draw({ items, rarity, profile, owned = new Set(), rng = Math.random, taste = null }) {
+  const hidden = new Set(taste?.hidden ?? []);
+  const visible = hidden.size ? items.filter((item) => !hidden.has(item.id)) : items;
+  const usable = visible.length ? visible : items;
   let pool = [];
   let tier = rarity;
   for (const candidate of tierFallback(rarity)) {
-    pool = items.filter((item) => item.rarity === candidate);
+    pool = usable.filter((item) => item.rarity === candidate);
     if (pool.length) { tier = candidate; break; }
   }
   if (!pool.length) return null;
   const wildcard = rng() < WILDCARD_CHANCE;
   const weights = pool.map((item) =>
-    (wildcard ? 1 : score(item, profile)) * (owned.has(item.id) ? OWNED_PENALTY : 1));
+    (wildcard ? 1 : score(item, profile) * tasteFactor(item, taste)) * (owned.has(item.id) ? OWNED_PENALTY : 1));
   const item = weightedPick(pool, weights, rng);
   return { item, rarity: tier, wildcard, duplicate: owned.has(item.id) };
 }

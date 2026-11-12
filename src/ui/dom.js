@@ -9,7 +9,7 @@ export function h(tag, attrs = {}, ...children) {
     else if (key.startsWith('on')) element.addEventListener(key.slice(2).toLowerCase(), value);
     else element.setAttribute(key, value === true ? '' : value);
   }
-  for (const child of children.flat()) {
+  for (const child of children.flat(Infinity)) {
     if (child == null || child === false) continue;
     element.append(child instanceof Node ? child : String(child));
   }
@@ -32,7 +32,7 @@ export function openDialog(dialog) {
   dialog.scrollTop = 0;
   // Start at the heading rather than on whichever control happens to come first.
   const heading = dialog.querySelector('h2');
-  if (heading) { heading.tabIndex = -1; heading.focus(); }
+  if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
 }
 
 // Closes a dialog when its backdrop is clicked.

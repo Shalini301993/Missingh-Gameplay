@@ -42,9 +42,10 @@ export function settle(economy, { duplicate }) {
   return { economy: next, bonus };
 }
 
-export function rollRarity(rng = Math.random) {
+// odds: { legendary, rare } as chances from 0 to 1; the rest is common.
+export function rollRarity(rng = Math.random, odds = RARITY_ODDS) {
   const roll = rng();
-  if (roll < RARITY_ODDS.legendary) return 'legendary';
-  if (roll < RARITY_ODDS.legendary + RARITY_ODDS.rare) return 'rare';
+  if (roll < odds.legendary) return 'legendary';
+  if (roll < odds.legendary + odds.rare) return 'rare';
   return 'common';
 }

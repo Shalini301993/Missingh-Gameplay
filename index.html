@@ -18,6 +18,8 @@
     <nav class="masthead-nav" aria-label="Game">
       <button type="button" class="link-button" id="open-collection">Collection <span class="count" id="collection-count">0</span></button>
       <button type="button" class="link-button" id="open-profile">Your likes</button>
+      <button type="button" class="link-button sound" id="toggle-music" aria-pressed="true">Music</button>
+      <button type="button" class="link-button sound" id="toggle-sfx" aria-pressed="true">Sounds</button>
     </nav>
   </header>
 
@@ -25,16 +27,39 @@
     <section class="machine" aria-label="Capsule machine">
       <div id="stage" class="stage" aria-hidden="true"></div>
       <div class="controls">
+        <div class="gauge" id="gauge" aria-hidden="true">
+          <div class="gauge-good" id="gauge-good"></div>
+          <div class="gauge-perfect" id="gauge-perfect"></div>
+          <div class="gauge-needle" id="gauge-needle"></div>
+        </div>
+        <p class="gauge-verdict" id="gauge-verdict" aria-live="polite"></p>
         <p class="tokens" id="tokens" aria-live="polite"></p>
         <button type="button" class="primary" id="pull" disabled>Loading the cabinet…</button>
+        <p class="hint-line" id="pull-hint">Press <kbd>Space</kbd> or tap: once to start the needle, again to stop it in the gold.</p>
+        <div class="fever" id="fever">
+          <span class="fever-label">Fever</span>
+          <div class="meter" role="progressbar" aria-label="Fever meter" aria-valuemin="0" aria-valuemax="100" id="fever-meter"><div class="meter-fill" id="fever-fill"></div></div>
+          <span class="fever-text" id="fever-text"></span>
+        </div>
         <p class="status" id="status" role="status"></p>
       </div>
     </section>
 
     <aside class="wall">
+      <section class="panel" aria-labelledby="level-heading">
+        <h2 id="level-heading">Collector level</h2>
+        <p class="level"><strong id="level-number">1</strong> <span id="level-title">Window-shopper</span></p>
+        <div class="meter" role="progressbar" aria-label="Experience to the next level" aria-valuemin="0" aria-valuemax="100" id="xp-meter"><div class="meter-fill" id="xp-fill"></div></div>
+        <p class="small" id="xp-text"></p>
+      </section>
+      <section class="panel" aria-labelledby="missions-heading">
+        <h2 id="missions-heading">Today’s missions</h2>
+        <ol class="missions" id="missions"></ol>
+      </section>
       <section class="panel" aria-labelledby="mood-heading">
         <h2 id="mood-heading">Today’s mood</h2>
         <div class="chips" id="mood-chips"></div>
+        <p class="now-playing" id="now-playing"></p>
       </section>
       <section class="panel" aria-labelledby="likes-heading">
         <h2 id="likes-heading">Your likes</h2>
@@ -47,9 +72,11 @@
     </aside>
   </main>
 
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
   <footer class="colophon">
     <p id="catalog-note"></p>
-    <p>Descriptions and images come from <a href="https://en.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> and Wikimedia Commons under their own licences. Search links leave this site. Your likes and collection are stored only in this browser.</p>
+    <p>Descriptions and images come from <a href="https://en.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> and Wikimedia Commons under their own licences. Quotes are from public-domain works on Project Gutenberg and Wikisource. The music is original and made in your browser as you play. Shop links open a search on each shop. Your likes and collection are stored only in this browser.</p>
   </footer>
 
   <dialog id="profile-dialog" class="sheet" aria-labelledby="profile-title"></dialog>

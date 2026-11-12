@@ -52,7 +52,7 @@ jobs:
         run: |
           mkdir -p _site/data
           cp -r index.html styles src vendor _site/
-          cp -r data/catalog _site/data/
+          cp -r data/catalog data/quotes.json _site/data/
       - uses: actions/configure-pages@v5
         if: steps.pages.outputs.type == 'workflow'
       - uses: actions/upload-pages-artifact@v4
