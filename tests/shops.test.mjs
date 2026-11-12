@@ -104,7 +104,7 @@ test('hidden objects never come back, and favourites tilt the draw', () => {
 test('"goes well with" picks objects from other categories that share the feel', () => {
   const manifest = JSON.parse(readFileSync(new URL('../data/catalog/index.json', import.meta.url), 'utf8'));
   const items = manifest.categories.flatMap((c) => JSON.parse(readFileSync(new URL(`../data/catalog/${c.file}`, import.meta.url), 'utf8')));
-  const coat = items.find((entry) => entry.title === 'Trench coat');
+  const coat = items.find((entry) => entry.title === "Levi's 501"); // a seed, so always there
   const picks = pairings(coat, items);
   assert.equal(picks.length, 3);
   assert.equal(new Set(picks.map((p) => p.category)).size, 3);

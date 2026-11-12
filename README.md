@@ -134,13 +134,29 @@ entries afterwards and exclude anything that does not belong (see below).
 ```bash
 node scripts/catalog/build.mjs            # seeds + Wikipedia (needs internet)
 node scripts/catalog/build.mjs --offline  # seeds only
-node scripts/catalog/build.mjs --refilter # re-apply the rules and current seeds to the catalog, no internet
+node scripts/catalog/build.mjs --refilter # re-apply the rules, corrections and current seeds, no internet
 node scripts/catalog/validate.mjs         # check the catalog files
 ```
 
 Spotted something that should not be there? Add its Wikipedia page title to the `exclude` list at
 the top of `sources.json` and run `--refilter` (or run the workflow with *mode* set to *refilter*,
 which takes seconds); it is removed straight away and stays out of future builds.
+
+Something in the wrong category, or labelled with the wrong kind or country? Add it to
+`corrections`, under its Wikipedia page title, with the `category`, `kind` or `origin` it should
+have (`null` removes an origin):
+
+```json
+"corrections": {
+  "Mysore Sandalwood Oil": {"category": "perfumes"},
+  "Stetson": {"kind": "iconic"},
+  "Siddhartha (novel)": {"origin": null}
+}
+```
+
+Corrections apply to every build and every `--refilter`. A refilter also re-checks each item
+against the `require` and `drop` patterns of the sources that could have found it (those with the
+same kind and origin), so tightening a source takes effect without a rebuild.
 
 ### Adding sources
 
@@ -176,7 +192,7 @@ box.
 ### Why a build takes a while
 
 Wikipedia limits how fast scripts that do not identify themselves may ask. The build asks for
-50 pages at a time, waits whenever it is told to slow down, and stops cleanly after 40 minutes with
+50 pages at a time, waits whenever it is told to slow down, and stops cleanly after 75 minutes with
 whatever it has collected. A build that comes back much smaller than the existing catalog is
 discarded rather than committed.
 
