@@ -1,6 +1,6 @@
 // The product card shown when a capsule opens, styled like a museum label.
 
-import { categoryById, rarityById, COLOURS, BUDGETS } from '../core/vocab.js';
+import { categoryById, rarityById, COLOURS, BUDGETS, KIND_LABELS, ORIGINS } from '../core/vocab.js';
 import { enrich, wikiUrl, webSearchUrl } from '../core/catalog.js';
 import { quoteLines } from '../core/quotes.js';
 import { shopLinks, regionById } from '../core/shops.js';
@@ -14,7 +14,8 @@ export function plate(item, { small = false, onImage } = {}) {
     ? h('span', { class: 'glyph', 'aria-hidden': 'true' }, initial)
     : h('div', { class: 'plate-blank' },
       h('span', { class: 'glyph', 'aria-hidden': 'true' }, initial),
-      h('span', { class: 'plate-word' }, category?.label ?? 'Object')));
+      h('span', { class: 'plate-word' }, item.kind === 'maker'
+        ? `Small maker${ORIGINS[item.origin] ? ` · ${ORIGINS[item.origin]}` : ''}` : category?.label ?? 'Object')));
   const frame = h('div', { class: small ? 'tile-plate' : 'plate-frame' });
   const show = (source) => {
     const image = h('img', { src: source, alt: small ? '' : item.title, loading: 'lazy', decoding: 'async', referrerpolicy: 'no-referrer' });
@@ -50,18 +51,21 @@ export function createCardSheet(dialog, {
 
   function shopSection(item) {
     const region = regionById(getRegion());
-    const [amazon, ...others] = shopLinks(item, region.id);
+    const [first, ...others] = shopLinks(item, region.id);
     const visit = () => onShop?.(item);
+    const own = first.id === 'maker';
     return h('section', { class: 'shop', 'aria-labelledby': 'shop-heading' },
       h('div', { class: 'section-head' },
-        h('h3', { id: 'shop-heading' }, 'Find one'),
-        h('button', { type: 'button', class: 'link-button small', onClick: () => onChangeRegion?.() }, `Shops in ${region.label}`)),
-      h('a', { class: 'buy', id: 'buy-amazon', href: amazon.url, target: '_blank', rel: 'noopener', onClick: visit },
-        h('span', {}, `Search ${amazon.label}`), h('span', { 'aria-hidden': 'true' }, '↗')),
+        h('h3', { id: 'shop-heading' }, own ? 'Buy from the maker' : 'Find one'),
+        !own && h('button', { type: 'button', class: 'link-button small', onClick: () => onChangeRegion?.() }, `Shops in ${region.label}`)),
+      h('a', { class: 'buy', id: 'buy', href: first.url, target: '_blank', rel: 'noopener', onClick: visit },
+        h('span', {}, own ? `Visit ${first.label}'s shop` : `Search ${first.label}`), h('span', { 'aria-hidden': 'true' }, '↗')),
       h('ul', { class: 'shops' }, others.map((link) => h('li', {},
         external(link.url, `${link.label} ↗`, visit),
         link.note && h('span', { class: 'shop-note' }, link.note)))),
-      h('p', { class: 'fine' }, 'Each link opens a search on that shop. Prices and stock are theirs.'));
+      h('p', { class: 'fine' }, own
+        ? `${first.label} is a small independent business. Prices, stock and shipping are theirs.`
+        : 'Each link opens a search on that shop. Prices and stock are theirs.'));
   }
 
   function pairSection(item) {
@@ -123,7 +127,7 @@ export function createCardSheet(dialog, {
           h('p', { class: 'eyebrow' },
             h('span', { class: `rarity-dot ${item.rarity}` }),
             h('span', { class: 'rarity-word' }, rarity?.label ?? item.rarity),
-            h('span', {}, `${category?.label ?? item.category} · ${item.kind === 'iconic' ? 'Iconic object' : 'Type of object'}`)),
+            h('span', {}, [category?.label ?? item.category, KIND_LABELS[item.kind], ORIGINS[item.origin]].filter(Boolean).join(' · '))),
           h('h2', { id: 'card-title' }, item.title),
           item.about && h('p', { class: 'about' }, item.about),
           reward && h('p', { class: `reward ${reward.quality}` },

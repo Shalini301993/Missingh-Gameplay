@@ -193,19 +193,22 @@ const RETAIL = /\b(retailers?|retail|department store|supermarket|chain of|store
 // What a description says the page is, when that is not a physical thing. The first list matches
 // anywhere in the head of the description, the second only where the head ends, so that
 // "1999 film" is rejected but "film camera" is not, and "winter sport" but not "sports car".
-const NOT_A_THING = /\b(tv series|television (series|show|program|programme|network|channel|film|drama|special)|episode|website|festival|trade fair|exhibition|subculture|genre|disambiguation|wikimedia|act of|profession|occupation|craft of|art of|process|processing|technique|classification|sizes|measurement|theory|phenomenon|(art|social|cultural|political|design) movement|visual arts?|architecture|revolution|ceremony|ritual|tradition|manner of|martial art|operating system|software|web browser|programming language|protocol|video games?(?! (console|system|controller|accessor))|franchise|fictional|deity|god|goddess|mytholog\w*|mystical|species|genus|flowering plant|church|chapel|cathedral|palace|statue|sculpture|painting|battalion|regiment|incident|accident|disaster|scandal|court case|cuisine|beverage|appetizer|dessert|chemical|spice|shrub|mineral|alloy|symbol\w*|emblem|slogan|phrase|idiom|person who|people who|paradox|(city|town|village|borough|province|river|mountain|island|country) in)\b|etiquette|religious order|^(term|word|name|nickname)\b/i;
+const NOT_A_THING = /\b(tv series|television (series|show|program|programme|network|channel|film|drama|special)|episode|website|festival|trade fair|exhibition|subculture|genre|disambiguation|wikimedia|act of|profession|occupation|craft of|art of|process|processing|technique|classification|sizes|measurement|theory|phenomenon|(art|social|cultural|political|design) movement|visual arts?|architecture|revolution|ceremony|ritual|tradition|manner of|martial art|operating system|software|web browser|programming language|protocol|video games?(?! (console|system|controller|accessor))|franchise|fictional|deity|god|goddess|mytholog\w*|mystical|species|genus|flowering plant|church|chapel|cathedral|palace|statue|sculpture|painting|battalion|regiment|incident|accident|disaster|scandal|court case|cuisine|beverage|appetizer|dessert|chemical|spice|shrub|mineral|alloy|symbol\w*|emblem|slogan|phrase|idiom|person who|people who|paradox|(city|town|village|borough|province|river|mountain|island|country) in|rice|tea|mangoe?s?|cultivar|chill?ies|chill?i|peppers?|sweet dish|sweets|desserts?|pudding|curry|pickles?|liquor|wine|beer|vegetables?|bananas?|cocoa|honey|jaggery|millet|lentils?|cheese|bread|cakes?|candy|confectionery|foodstuffs?|delicacy|world heritage site|monuments?|temples?|market(place)?|structure|castes?|tribe|airline|bank|cooperative|laws?|treaty|museum)\b|etiquette|religious order|^(term|word|name|nickname)\b/i;
 const NOT_A_THING_AT_END = /\b(films?|albums?|songs?|singles?|magazines?|awards?|industry|law|term|concepts?|methods?|activit(y|ies)|pastime|hobby|sports?|customs?|practice|service|labels?|marks?|characters?|plants?|fruits?|trees?|herbs?|compounds?|dish(es)?|meals?|drinks?|snacks?|coffee|index|temperature|variance|problems?|trials?|affairs?|city|town|village|country)$/i;
 
 // A description's head is what the thing is, before "by …", "from …", "used for …" and the like.
 // "Sports car manufactured by the manufacturer Porsche" is a car; "German car manufacturer" is not.
 const AFTER_HEAD = /\s(by|from|for|based|adapted|made|produced|manufactured|designed|developed|marketed|sold|owned|created|featuring|used|worn|introduced|released|endorsed)\b/i;
+// Crafts are often described as a technique, tradition or style ("Tie-dyeing technique of India");
+// for craft sources those words do not disqualify a page.
+const CRAFT_WORDS = /\b(techniques?|traditions?|styles?|crafts? of|crafts?|art of|art forms?|visual arts?|arts?|paintings?|embroidery|weaving|sculptures?|carvings?|alloy)\b/gi;
 const headOf = (description) => description.split(AFTER_HEAD)[0].replace(/[\s,;:]+$/, '');
 
 // Why a page is not wanted, or null when it is. `page` is a search result; `options` are the
 // source's settings plus `exclude`, a set of lower-case titles to leave out, and `named`, true for
 // named works and products, whose titles ("Crime and Punishment", "Epiphone Casino") say nothing
 // about what they are.
-export function rejectReason(page, { allowOrganisations = false, allowNoImage = false, named = false, require, drop, exclude } = {}) {
+export function rejectReason(page, { allowOrganisations = false, allowNoImage = false, named = false, crafts = false, require, drop, exclude } = {}) {
   const description = page.description || '';
   const doc = page.cirrusdoc?.[0]?.source ?? {};
   const intro = typeof doc.opening_text === 'string' ? doc.opening_text.slice(0, 400) : '';
@@ -222,7 +225,8 @@ export function rejectReason(page, { allowOrganisations = false, allowNoImage = 
   if ((doc.category ?? []).some((category) => PERSON_CATEGORY.test(category))) return 'person';
   if (PERSON.test(description) || LIFE_DATES.test(description)) return 'person';
   if (RETAIL.test(head) || (!allowOrganisations && ORGANISATION.test(head))) return 'organisation';
-  if (NOT_A_THING.test(head) || NOT_A_THING_AT_END.test(head)) return 'not-a-thing';
+  const judged = crafts ? head.replace(CRAFT_WORDS, 'handwork') : head;
+  if (NOT_A_THING.test(judged) || NOT_A_THING_AT_END.test(judged)) return 'not-a-thing';
   if (drop && new RegExp(drop, 'i').test(text)) return 'source-drop';
   if (require && !new RegExp(require, 'i').test(text)) return 'source-require';
   return null;
@@ -351,7 +355,9 @@ export async function loadSeeds() {
     for (const entry of entries) {
       seeds.push({
         id: `${category.id}/${slugify(entry.title)}`, title: entry.title, kind: entry.kind, category: category.id,
-        blurb: entry.blurb, wiki: entry.wiki ?? null, image: entry.image ?? null,
+        ...(entry.about ? { about: entry.about } : {}), blurb: entry.blurb, wiki: entry.wiki ?? null, image: entry.image ?? null,
+        ...(entry.origin ? { origin: entry.origin } : {}),
+        ...(entry.kind === 'maker' ? { maker: entry.maker ?? entry.title, site: entry.site } : {}),
         vibes: entry.vibes ?? [], moods: entry.moods ?? [], colours: entry.colours ?? [],
         budget: entry.budget, rarity: entry.rarity, source: 'seed',
       });
@@ -361,13 +367,14 @@ export async function loadSeeds() {
 }
 
 async function enrichSeeds(api, seeds, log) {
-  const wanted = seeds.filter((seed) => seed.wiki && !seed.image);
+  const wanted = seeds.filter((seed) => seed.wiki);
   let filled = 0;
   for (let i = 0; i < wanted.length; i += PAGE) {
     const batch = wanted.slice(i, i + PAGE);
     const data = await api.call({
       titles: batch.map((seed) => seed.wiki.replace(/_/g, ' ')).join('|'), redirects: '1',
-      prop: 'pageimages', piprop: 'thumbnail', pithumbsize: String(THUMB_WIDTH), pilimit: 'max',
+      prop: 'pageimages|cirrusdoc', piprop: 'thumbnail', pithumbsize: String(THUMB_WIDTH), pilimit: 'max',
+      cdincludes: 'popularity_score',
     });
     const hop = new Map();
     for (const step of [...(data.query?.normalized ?? []), ...(data.query?.redirects ?? [])]) hop.set(step.from, step.to);
@@ -377,7 +384,8 @@ async function enrichSeeds(api, seeds, log) {
       for (let hops = 0; hop.has(title) && hops < 4; hops += 1) title = hop.get(title);
       const page = byTitle.get(title);
       if (!page || page.missing) { log(`  seed has no Wikipedia page: ${seed.title} (${seed.wiki})`); continue; }
-      if (page.thumbnail?.source) { seed.image = page.thumbnail.source; filled += 1; }
+      if (!seed.image && page.thumbnail?.source) { seed.image = page.thumbnail.source; filled += 1; }
+      seed.popularity = Number(page.cirrusdoc?.[0]?.source?.popularity_score) || 0;
     }
   }
   log(`Seeds: ${filled} of ${wanted.length} pictures found on Wikipedia`);
@@ -394,6 +402,7 @@ function toCandidate(page, source, settings) {
     opening: typeof doc.opening_text === 'string' && doc.opening_text.trim() ? doc.opening_text : null,
     popularity: Number(doc.popularity_score) || 0,
     kind: source.kind ?? settings.kind ?? guessKind(page.description),
+    origin: source.origin ?? settings.origin ?? null,
     defaults: { ...settings.defaults, ...source.defaults },
   };
 }
@@ -401,6 +410,7 @@ function toCandidate(page, source, settings) {
 const filtersFor = (source, settings, exclude) => ({
   exclude,
   named: (source.kind ?? settings.kind) === 'iconic',
+  crafts: Boolean(source.crafts ?? settings.crafts ?? (source.kind ?? settings.kind) === 'artifact'),
   allowOrganisations: source.allowOrganisations ?? settings.allowOrganisations,
   allowNoImage: source.allowNoImage ?? settings.allowNoImage,
   require: source.require ?? settings.require,
@@ -477,6 +487,25 @@ export async function build({
     if (steps.length && failures === steps.length) throw new Error('Every Wikipedia search failed; catalog left unchanged.');
     if (outOfTime) log('Out of time: finishing with what has been collected.');
 
+    // Only rare kinds: among generic "kind of thing" pages, the most-read are everyday objects.
+    const keepShare = config.genericKeepShare ?? 0.5;
+    for (const category of CATEGORIES) {
+      const lists = pools.get(category.id);
+      const views = lists.flatMap((list) => list.candidates).filter((c) => c.kind === 'generic').map((c) => c.popularity).sort((a, b) => a - b);
+      if (views.length < 4) continue;
+      const limit = views[Math.floor(views.length * keepShare)];
+      for (const list of lists) {
+        list.candidates = list.candidates.filter((candidate) => {
+          const everyday = candidate.kind === 'generic' && candidate.popularity >= limit;
+          if (everyday) {
+            candidate.row.kept -= 1;
+            candidate.row.rejected.everyday = (candidate.row.rejected.everyday ?? 0) + 1;
+          }
+          return !everyday;
+        });
+      }
+    }
+
     for (const category of CATEGORIES) {
       const seedCount = seeds.filter((seed) => seed.category === category.id).length;
       const cap = Math.max(0, (config.perCategoryCap ?? 140) - seedCount);
@@ -520,14 +549,18 @@ export async function build({
       return {
         id: `${category.id}/${slugify(candidate.title)}`, title, kind: candidate.kind,
         category: category.id, about: sentenceCase(candidate.description), blurb, wiki: candidate.wiki, image: candidate.image,
+        ...(candidate.origin ? { origin: candidate.origin } : {}),
         ...tagItem(`${candidate.title} ${candidate.description} ${blurb}`, candidate.defaults),
-        rarity: 'common', source: 'wikipedia', score: byViews ? candidate.popularity : -index,
+        rarity: 'common', source: 'wikipedia', popularity: byViews ? candidate.popularity : index,
       };
     });
-    assignRarity(generated);
+    // The least-read objects are the rarest. Small makers have no Wikipedia page and stay as set.
+    const categorySeeds = seeds.filter((seed) => seed.category === category.id);
+    const ranked = [...categorySeeds.filter((seed) => seed.kind !== 'maker' && seed.popularity > 0), ...generated];
+    if (ranked.some((item) => item.popularity > 0)) assignRarity(ranked, (item) => -item.popularity);
     const ids = new Set();
-    const items = [...seeds.filter((seed) => seed.category === category.id), ...generated]
-      .map(({ score, ...item }) => item)
+    const items = [...categorySeeds, ...generated]
+      .map(({ score, popularity, ...item }) => item)
       .filter((item) => item.id.split('/')[1] && !ids.has(item.id) && ids.add(item.id) && !itemProblems(item).length)
       .sort((a, b) => a.title.localeCompare(b.title, 'en'));
     catalog.set(category.id, items);
@@ -569,24 +602,33 @@ export function reportMarkdown(counts, report, stats) {
 }
 
 // Re-applies the current rules and the exclude list to the Wikipedia items already in
-// data/catalog/, without contacting Wikipedia. It can only remove items; a full build adds them.
+// data/catalog/, and swaps in the current seeds, without contacting Wikipedia. It cannot add
+// Wikipedia items; a full build does that.
 export async function refilter({ log = console.log } = {}) {
   const config = JSON.parse(await readFile(path.join(ROOT, 'scripts/catalog/sources.json'), 'utf8'));
+  const seeds = await loadSeeds();
   const exclude = new Set((config.exclude ?? []).map((title) => title.toLowerCase()));
   const catalog = new Map();
   for (const category of CATEGORIES) {
     const items = JSON.parse(await readFile(path.join(ROOT, 'data/catalog', `${category.id}.json`), 'utf8'));
-    catalog.set(category.id, items.filter((item) => {
-      if (item.source !== 'wikipedia') return true;
+    const fresh = seeds.filter((seed) => seed.category === category.id).map(({ popularity, ...seed }) => seed);
+    const freshIds = new Set(fresh.map((seed) => seed.id));
+    const rarityOf = new Map(items.map((item) => [item.id, item.rarity]));
+    const kept = items.filter((item) => {
+      if (item.source !== 'wikipedia') return false; // seeds are re-added below, as they are now
+      if (freshIds.has(item.id)) return false;
       const page = {
         title: item.wiki.replace(/_/g, ' '), description: item.about || 'object', thumbnail: { source: 'kept' },
         cirrusdoc: [{ source: { opening_text: item.blurb } }],
       };
       // Which source an item came from is not recorded, so only the rules shared by all apply.
-      const reason = rejectReason(page, { allowOrganisations: true, named: item.kind === 'iconic', exclude });
+      const reason = rejectReason(page, { allowOrganisations: true, named: item.kind === 'iconic', crafts: item.kind === 'artifact', exclude });
       if (reason) log(`  removing ${item.title} (${category.id}): ${reason}`);
       return !reason;
-    }));
+    });
+    // A seed keeps the rarity the last full build gave it; new seeds start as written.
+    const seeded = fresh.map((seed) => (seed.kind !== 'maker' && rarityOf.has(seed.id) ? { ...seed, rarity: rarityOf.get(seed.id) } : seed));
+    catalog.set(category.id, [...seeded, ...kept].filter((item) => !itemProblems(item).length).sort((a, b) => a.title.localeCompare(b.title, 'en')));
   }
   return catalog;
 }

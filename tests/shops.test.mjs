@@ -52,6 +52,11 @@ test('every card gets an Amazon link for its region, then shops that suit the ca
   assert.deepEqual(guitar.map((link) => link.id), ['amazon', 'thomann', 'ebay']);
 });
 
+test("a small maker's card goes straight to the maker's own shop", () => {
+  const maker = item({ title: 'Frost River', kind: 'maker', maker: 'Frost River', site: 'https://frostriver.com/', category: 'bags' });
+  assert.deepEqual(shopLinks(maker, 'IN'), [{ id: 'maker', label: 'Frost River', note: "the maker's own shop", url: 'https://frostriver.com/' }]);
+});
+
 test('every category and region gives at least two valid links', () => {
   for (const category of CATEGORY_IDS) {
     for (const region of REGIONS) {

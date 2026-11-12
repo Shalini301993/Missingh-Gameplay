@@ -119,7 +119,7 @@ async function run(browser, name, { viewport, reducedMotion, pictures, source })
   assert.ok((await page.locator('#card-dialog .quote blockquote').textContent()).trim().length > 10);
 
   // Where to buy: Amazon first, then the category's shops; plus Wikipedia and a web search.
-  const amazon = await page.locator('#buy-amazon').getAttribute('href');
+  const amazon = await page.locator('#buy').getAttribute('href');
   assert.ok(amazon.startsWith('https://www.amazon.com/s?k='), amazon);
   assert.ok(decodeURIComponent(amazon.replace(/\+/g, ' ')).includes(title));
   const shops = await page.locator('#card-dialog .shops a').evaluateAll((list) => list.map((a) => a.href));
@@ -156,7 +156,7 @@ async function run(browser, name, { viewport, reducedMotion, pictures, source })
 
   // Opening a shop counts as interest; favouriting teaches the game.
   const popup = context.waitForEvent('page');
-  await page.click('#buy-amazon');
+  await page.click('#buy');
   await (await popup).close();
   await page.click('#favourite');
   state = await stored(page);
@@ -227,7 +227,7 @@ async function run(browser, name, { viewport, reducedMotion, pictures, source })
   await page.locator('#region').selectOption('IN');
   await page.click('#save-profile');
   await page.locator('#recent button').first().click();
-  assert.ok((await page.locator('#buy-amazon').getAttribute('href')).startsWith('https://www.amazon.in/s?k='));
+  assert.ok((await page.locator('#buy').getAttribute('href')).startsWith('https://www.amazon.in/s?k='));
   await page.click('#close-card');
 
   // Reload keeps everything and does not show the welcome sheet again.
@@ -295,7 +295,10 @@ async function realCatalog(browser) {
     assert.ok((await page.locator('#card-dialog .blurb').textContent()).trim().length > 10);
     assert.ok((await page.locator('#card-dialog .quote blockquote').textContent()).trim().length > 5);
     assert.equal(await page.locator('#card-dialog .pair').count(), 3);
-    assert.ok((await page.locator('#buy-amazon').getAttribute('href')).startsWith('https://www.amazon.in/s?k='));
+    // Small makers link to their own shop; everything else to Amazon India for this player.
+    const href = await page.locator('#buy').getAttribute('href');
+    const maker = /Small maker/.test(await page.locator('#card-dialog .eyebrow').textContent());
+    assert.ok(maker ? href.startsWith('https://') && !href.includes('amazon.') : href.startsWith('https://www.amazon.in/s?k='), href);
     if (shots && i === 0) { await page.waitForTimeout(300); await page.screenshot({ path: `${shots}/real-card.png` }); }
     await page.click('#close-card');
   }
