@@ -1,0 +1,26 @@
+# Runs the unit tests and checks the catalog on every pull request.
+name: Tests
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+      - name: Unit tests
+        run: npm test
+      - name: Check the catalog
+        run: node scripts/catalog/validate.mjs

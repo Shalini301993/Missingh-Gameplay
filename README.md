@@ -131,6 +131,8 @@ npm test             # matching, tokens, generator and catalog checks
 node tests/smoke.mjs # plays the game in a real browser (needs Playwright with Chromium)
 ```
 
+Every pull request runs `npm test` and the catalog check automatically (the *Tests* workflow).
+
 ## Layout
 
 ```
