@@ -172,6 +172,9 @@ export function createAudio({ settings = {}, onTrack = () => {} } = {}) {
 
   function unlock() {
     if (!ctx) {
+      // iPhones mute web audio while the silent switch is on, unless the page asks to play like a
+      // music player (iOS 17 and later).
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch { /* older browsers */ }
       const Context = window.AudioContext || window.webkitAudioContext;
       if (!Context) return false;
       ctx = new Context({ latencyHint: 'playback' });

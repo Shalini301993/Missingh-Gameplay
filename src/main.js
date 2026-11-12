@@ -49,10 +49,10 @@ let heldTokens = 0; // tokens won this pull, shown once the capsule opens
 
 const audio = createAudio({ settings: state.settings, onTrack: renderNowPlaying });
 audio.setMood(state.profile.mood);
-// Browsers only allow sound after a click, tap or key press.
+// Browsers only allow sound after a click, tap or key press. Safari counts a tap only once the
+// finger lifts, so listen for every kind of press.
 const wake = () => audio.unlock();
-document.addEventListener('pointerdown', wake, true);
-document.addEventListener('keydown', wake, true);
+for (const type of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) document.addEventListener(type, wake, true);
 
 // ---------------------------------------------------------------- machine
 
