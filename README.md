@@ -3,27 +3,77 @@
 A capsule-machine game for the browser. Tell the machine what you like, pull the lever, and it
 drops a capsule holding a random object matched to you: clothes, shoes, perfumes, books, bags,
 jewellery, watches, toys, vehicles, gadgets, home objects and musical instruments. Every find goes
-into your collection book with a short description, a picture, and links to read more or look for
-it online.
+into your collection book with a short description, a picture, a line from literature, links to
+shops that sell it, and three other objects it goes well with. Each mood has its own music.
 
 Built with [Phaser](https://phaser.io/) 4 as a plain static site, so it runs on GitHub Pages with no
 server.
 
 ## How to play
 
-1. **Pick your likes** – favourite categories, vibes, colours and a budget level. Change them any
-   time under *Your likes*.
-2. **Pick today's mood** beside the machine. It resets each day.
-3. **Pull the lever** (the button, or the brass dial on the machine). Each pull costs one token.
-4. **Open the capsule.** Capsules are common, rare (1 in 5) or legendary (1 in 20). The card tells
-   you what the object is and why it matched.
-5. **Fill your collection.** Favourite the ones you love.
+1. **Pick your likes** – favourite categories, vibes, colours, a budget level and the country you
+   shop in. Change them any time under *Your likes*.
+2. **Pick today's mood** beside the machine. It sets the music and nudges what drops. It resets
+   each day.
+3. **Pull the lever** – press the button (or <kbd>Space</kbd>, or the brass dial) and a needle
+   starts sweeping the gauge. Press again to stop it. Stop in the **gold** for a perfect pull, in
+   the blue band for a good one. Each pull costs one token.
+4. **Open the capsule.** It arrives in a plain wrapper; watch the glow behind it climb from grey to
+   blue to gold. The card tells you what the object is, why it matched, and where to find one.
+5. **Fill your collection.** Favourite the ones you love, and say *Not for me* to the ones you
+   don't. The machine learns from both.
 
-Tokens: you are topped up to 10 every day. Every fifth new discovery earns a bonus token, and two
-duplicates make one token. About one pull in seven is a *wildcard* that ignores your likes, so the
-machine can still surprise you.
+### The rules
 
-Your likes, tokens and collection are saved in your browser only. Nothing is sent anywhere.
+| | |
+|---|---|
+| **Odds** | Common, rare or legendary. A missed stop gives 5% legendary and 20% rare; a good stop 8% and 27%; a perfect stop 14% and 36%. |
+| **Combo** | Each good or perfect stop in a row adds to your combo, which adds experience. The needle speeds up and the gold narrows as the combo grows. A miss breaks it. |
+| **Fever** | Every pull fills the fever meter, perfect stops and new finds fastest. When it is full, the next 3 pulls are rare or better. |
+| **Levels** | Pulls earn experience (more for rarer, newer and more skilful finds). Each new collector level pays 2 tokens. |
+| **Missions** | Three a day, the same for everyone, such as *Stop the needle in the gold 3 times*. Each pays 1–3 tokens. |
+| **Tokens** | Topped up to 10 every day. Every fifth new discovery pays 1, and two duplicates make 1. |
+| **Wildcards** | About one pull in seven ignores your likes, so the machine can still surprise you. |
+
+Your likes, tokens, progress and collection are saved in your browser only. Nothing is sent anywhere.
+
+### Music
+
+Each mood has an original piece, composed by the game itself as it plays (nothing is downloaded,
+and there are no recordings):
+
+| Mood | Piece | In the spirit of |
+|---|---|---|
+| Calm | *Nocturne in D-flat* | a Chopin nocturne, with jazz harmony |
+| Romantic | *Waltz for a Rose* | a Chopin waltz played by a jazz trio |
+| Nostalgic | *Lo-fi Letters* | dusty electric piano and soft drums (also plays when no mood is picked) |
+| Playful | *Rhodes and Sunlight* | laid-back neo-soul, in the manner of FKJ |
+| Adventurous | *Qawwali Nights* | harmonium, tabla and hand claps over a walking bass |
+| Bold | *Midnight Bebop* | fast swing: walking bass, ride cymbal and horns |
+
+The music changes when you change mood, speeds up during fever, and starts with your first tap
+(browsers do not allow sound before that). *Music* and *Sounds* in the header switch it off.
+
+### Where to buy
+
+Every card has a button to search **Amazon** in your country, then shops that suit the object:
+
+- Books: Bookshop.org (US and UK), AbeBooks, and Open Library to borrow free
+- Fashion, shoes, bags and accessories: Nordstrom (US), Flipkart (India), Etsy and eBay
+- Perfume: Sephora and Nordstrom (US), Flipkart (India)
+- Home: IKEA, Target (US), Flipkart (India) and Etsy
+- Instruments: Thomann; watches, gadgets and vehicles: eBay; toys: Target (US), Etsy and eBay
+
+Each link opens a search on that shop for the object. The country comes from your browser's
+language settings and can be changed under *Your likes*. To earn from Amazon links, put your
+Amazon Associates tracking ID in `AMAZON_TAG` at the top of `src/core/shops.js`.
+
+### Quotes
+
+Each object carries a line from a public-domain work (Shakespeare, Austen, Carroll, Wilde,
+Thoreau, Dickens, Whitman, Keats and others), chosen because it names the object, shares its
+category or shares its mood. All 102 quotes in `data/quotes.json` were checked word for word
+against their source texts on Project Gutenberg and Wikisource, and each links to the full work.
 
 ## Run it locally
 
@@ -127,8 +177,8 @@ corrected version in the seeds (seeds always win).
 ## Tests
 
 ```bash
-npm test             # matching, tokens, generator and catalog checks
-node tests/smoke.mjs # plays the game in a real browser (needs Playwright with Chromium)
+npm test             # rules, matching, shop links, quotes, generator and catalog checks
+node tests/smoke.mjs # plays the game in a real browser and renders all the music (needs Playwright)
 ```
 
 Every pull request runs `npm test` and the catalog check automatically (the *Tests* workflow).
@@ -137,11 +187,13 @@ Every pull request runs `npm test` and the catalog check automatically (the *Tes
 
 ```
 index.html, styles/     the page and its museum-catalogue look
-src/scenes/             the Phaser machine: capsules, dial, chute, reveal
+src/scenes/             the Phaser machine: capsules, dial, chute, reveal, fever ring
+src/audio/              the music (tracks.js), the synthesized instruments and the player
 src/ui/                 likes sheet, product card, collection book
-src/core/               vocabulary, matching, tokens, storage, catalog loading
+src/core/               rules (play.js), matching, taste learning, shop links, quotes, storage
 data/seeds/             hand-written objects
 data/catalog/           the built catalog the game loads
+data/quotes.json        the checked quotes
 scripts/catalog/        the generator, its sources and the validator
 vendor/                 Phaser (MIT licence)
 ```
