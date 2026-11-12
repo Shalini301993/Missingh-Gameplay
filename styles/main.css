@@ -52,7 +52,7 @@ button:disabled { cursor: default; }
   border-bottom: 1px solid var(--ink);
 }
 .masthead h1 { font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.05; letter-spacing: -0.01em; }
-.masthead-nav { display: flex; gap: clamp(12px, 3vw, 28px); justify-content: flex-end; flex: none; }
+.masthead-nav { display: flex; flex-wrap: wrap; gap: 6px clamp(12px, 3vw, 28px); justify-content: flex-end; }
 .brand { min-width: 0; }
 
 .link-button {
@@ -301,4 +301,99 @@ legend { font-family: var(--serif); font-size: 1.1rem; padding: 0; margin-bottom
 @media (prefers-reduced-motion: no-preference) {
   dialog.sheet[open] { animation: rise 0.28s ease-out; }
   @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+}
+
+/* ---------- timing gauge ---------- */
+
+.gauge { position: relative; width: min(100%, 360px); height: 18px; border: 1px solid var(--ink); background: var(--wall); overflow: hidden; }
+.gauge-good, .gauge-perfect { position: absolute; top: 0; bottom: 0; left: 40%; width: 20%; }
+.gauge-good { background: rgba(47, 93, 155, 0.25); }
+.gauge-perfect { background: var(--legendary); left: 47%; width: 6%; }
+.gauge-needle { position: absolute; top: -3px; bottom: -3px; left: 0; width: 3px; margin-left: -1.5px; background: var(--ink); }
+.gauge:not(.live) .gauge-good, .gauge:not(.live) .gauge-perfect { opacity: 0.35; }
+.gauge-verdict { min-height: 1.4em; font-family: var(--serif); font-size: 1.05rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.gauge-verdict.perfect { color: var(--legendary); }
+.gauge-verdict.good { color: var(--rare); }
+.gauge-verdict.miss { color: var(--ink-soft); }
+.gauge-verdict.pop { animation: pop 0.45s ease-out; }
+@keyframes pop { from { transform: scale(1.6); opacity: 0; } }
+.primary.aiming { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.hint-line { font-size: 0.78rem; color: var(--ink-soft); max-width: 40ch; }
+kbd { font-family: var(--sans); font-size: 0.75rem; border: 1px solid var(--rule); border-bottom-width: 2px; padding: 0 5px; border-radius: 3px; background: #fff; }
+.combo { color: var(--accent); font-weight: 600; }
+
+/* ---------- meters, fever, level, missions ---------- */
+
+.meter { position: relative; height: 8px; background: var(--wall); border: 1px solid var(--rule); overflow: hidden; }
+.meter-fill { position: absolute; top: 0; bottom: 0; left: 0; width: 0; background: var(--ink); transition: width 0.4s ease; }
+.fever { display: grid; grid-template-columns: auto minmax(110px, 220px) auto; align-items: center; gap: 10px; font-size: 0.8rem; }
+.fever-label { letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+.fever-text { color: var(--ink-soft); font-variant-numeric: tabular-nums; min-width: 9ch; }
+.fever .meter-fill { background: var(--accent); }
+.fever.on .meter { border-color: var(--accent); }
+.fever.on .meter-fill { animation: throb 0.5s ease-in-out infinite alternate; }
+.fever.on .fever-label, .fever.on .fever-text { color: var(--accent); font-weight: 600; }
+@keyframes throb { from { opacity: 0.5; } to { opacity: 1; } }
+
+.level { font-family: var(--serif); font-size: 1.05rem; margin-bottom: 8px; }
+.level strong { font-size: 1.6rem; font-weight: 500; margin-right: 6px; }
+#xp-meter .meter-fill { background: var(--legendary); }
+.small { font-size: 0.8rem; color: var(--ink-soft); margin-top: 6px; }
+
+.missions { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.missions li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 0.88rem; }
+.missions .meter { grid-column: 1 / -1; height: 5px; }
+.missions .reward { font-size: 0.75rem; color: var(--ink-soft); white-space: nowrap; }
+.missions li.done { color: var(--ink-soft); }
+.missions li.done .mission-text { text-decoration: line-through; }
+.missions li.done .meter-fill { background: var(--legendary); }
+
+.now-playing { margin-top: 10px; font-size: 0.82rem; color: var(--ink-soft); }
+.now-playing em { font-family: var(--serif); color: var(--ink); }
+.link-button.sound[aria-pressed="false"] { color: var(--ink-soft); border-color: var(--rule); }
+
+/* ---------- notices ---------- */
+
+.toasts { position: fixed; z-index: 30; left: 50%; top: 14px; transform: translateX(-50%); display: grid; gap: 8px; width: min(420px, calc(100vw - 32px)); pointer-events: none; }
+.toast { background: var(--ink); color: var(--paper); padding: 10px 16px; font-size: 0.92rem; box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.5); animation: toast-in 0.3s ease-out; }
+.toast strong { font-family: var(--serif); font-weight: 500; font-size: 1.05rem; margin-right: 8px; }
+.toast.gold { background: var(--legendary); color: var(--ink); }
+.toast.red { background: var(--accent); }
+.toast.leaving { opacity: 0; transition: opacity 0.4s; }
+@keyframes toast-in { from { transform: translateY(-10px); opacity: 0; } }
+
+/* ---------- card: reward, shops, pairings ---------- */
+
+.reward { font-size: 0.88rem; }
+.reward strong { font-weight: 600; }
+.reward.perfect strong { color: var(--legendary); }
+.reward.good strong { color: var(--rare); }
+.reward.miss strong { color: var(--ink-soft); }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.section-head h3 { font-size: 1rem; }
+.shop, .pairs { border-top: 1px solid var(--rule); padding-top: 12px; display: grid; gap: 10px; }
+.buy { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: var(--ink); color: var(--paper); text-decoration: none; padding: 12px 16px; font-size: 1rem; }
+.buy:hover { background: var(--accent); color: var(--paper); }
+.shops { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.shops li { display: flex; align-items: baseline; gap: 6px; }
+.shops a { white-space: nowrap; }
+.shop-note, .fine { font-size: 0.75rem; color: var(--ink-soft); }
+.research { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.92rem; }
+.link-button.small { font-size: 0.8rem; }
+.pair-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pair { width: 100%; background: none; border: 1px solid var(--rule); padding: 0; text-align: left; display: grid; align-content: start; }
+.pair:hover { border-color: var(--ink); }
+.pair .tile-plate { aspect-ratio: 4 / 3; }
+.pair-title { font-family: var(--serif); font-size: 0.9rem; line-height: 1.2; padding: 6px 8px 0; }
+.pair-meta { font-size: 0.7rem; color: var(--ink-soft); padding: 2px 8px 8px; }
+.secondary.quiet { border-color: var(--rule); color: var(--ink-soft); }
+.secondary.quiet:hover:not(:disabled) { background: var(--ink-soft); color: var(--paper); }
+.secondary:disabled { opacity: 0.6; cursor: default; }
+.card.preview { border-top-style: dashed; }
+.card.legendary .plate { animation: shimmer 2.4s ease-in-out infinite alternate; }
+@keyframes shimmer { from { box-shadow: inset 0 0 0 0 rgba(195, 154, 59, 0); } to { box-shadow: inset 0 0 70px 0 rgba(195, 154, 59, 0.35); } }
+.select { font: inherit; padding: 8px 10px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); max-width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fever.on .meter-fill, .card.legendary .plate, .gauge-verdict.pop, .toast { animation: none; }
 }

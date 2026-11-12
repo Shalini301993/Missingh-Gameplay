@@ -1,6 +1,7 @@
 // The "Your likes" sheet: categories, vibes, colours and budget.
 
 import { CATEGORIES, VIBES, COLOURS, BUDGETS, MOODS } from '../core/vocab.js';
+import { REGIONS, regionById } from '../core/shops.js';
 import { h, chip, capitalise, openDialog, closeOnBackdrop } from './dom.js';
 
 export function createProfileSheet(dialog, { getProfile, onSave }) {
@@ -55,7 +56,10 @@ export function createProfileSheet(dialog, { getProfile, onSave }) {
           field('Today’s mood', 'Changes what drops today. You can switch it any time beside the machine.',
             single('mood', MOODS.map((id) => ({ id, label: capitalise(id) })), { allowNone: true })),
           field('Colours', 'Palettes you like to see.', multi('colours', COLOURS)),
-          field('Budget', 'From everyday finds to dream objects.', single('budget', BUDGETS))),
+          field('Budget', 'From everyday finds to dream objects.', single('budget', BUDGETS)),
+          field('Shop in', 'Where the shop links on each card should take you.',
+            h('select', { id: 'region', class: 'select', onChange: (event) => { draft.region = event.target.value; } },
+              REGIONS.map((region) => h('option', { value: region.id, selected: region.id === draft.region }, region.label))))),
         h('footer', { class: 'sheet-foot' },
           h('span', { class: 'hint' }, 'Saved in this browser only.'),
           !first && h('button', { type: 'button', class: 'secondary', onClick: () => dialog.close() }, 'Cancel'),
@@ -68,7 +72,7 @@ export function createProfileSheet(dialog, { getProfile, onSave }) {
       const profile = getProfile();
       draft = {
         categories: [...profile.categories], vibes: [...profile.vibes], colours: [...profile.colours],
-        budget: profile.budget, mood: profile.mood,
+        budget: profile.budget, mood: profile.mood, region: profile.region,
       };
       render(!profile.done);
       openDialog(dialog);
@@ -84,5 +88,6 @@ export function describeProfile(profile) {
   if (profile.vibes.length) parts.push(profile.vibes.map(capitalise).join(', '));
   if (profile.colours.length) parts.push(profile.colours.map((id) => label(COLOURS, id)).join(', '));
   parts.push(`${label(BUDGETS, profile.budget)} budget`);
+  if (profile.region) parts.push(`shops in ${regionById(profile.region).label}`);
   return parts.join(' · ');
 }

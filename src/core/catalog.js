@@ -38,4 +38,3 @@ export async function enrich(item) {
 
 export const wikiUrl = (item) => (item.wiki ? `https://en.wikipedia.org/wiki/${encodeURIComponent(item.wiki)}` : null);
 export const webSearchUrl = (item) => `https://duckduckgo.com/?q=${encodeURIComponent(item.title)}`;
-export const shopSearchUrl = (item) => `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(item.title)}`;

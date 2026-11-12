@@ -32,7 +32,7 @@ export function openDialog(dialog) {
   dialog.scrollTop = 0;
   // Start at the heading rather than on whichever control happens to come first.
   const heading = dialog.querySelector('h2');
-  if (heading) { heading.tabIndex = -1; heading.focus(); }
+  if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
 }
 
 // Closes a dialog when its backdrop is clicked.
