@@ -104,14 +104,14 @@ async function run(browser, name, { viewport, reducedMotion, pictures, source })
   if (source === 'seeds') {
     // A picture is shown and credited: the catalog's own, or one looked up from Wikipedia.
     await page.waitForSelector('#card-dialog .plate img');
-    await page.waitForFunction(() => !document.querySelector('#card-dialog figcaption').hidden);
+    await page.waitForFunction(() => !document.querySelector('#card-dialog .plate figcaption').hidden);
     assert.equal(await page.locator('#card-dialog .plate img').getAttribute('src'), pulled.image ?? LOOKED_UP);
     assert.equal(seen.lookups, pulled.image ? 0 : 1);
   } else {
     // A Wikipedia-built catalog is not looked up again: no picture means a lettered plate, no credit.
     await page.waitForSelector('#card-dialog .plate-blank');
     assert.equal(await page.locator('#card-dialog .plate img').count(), 0);
-    assert.equal(await page.locator('#card-dialog figcaption').isHidden(), true);
+    assert.equal(await page.locator('#card-dialog .plate figcaption').isHidden(), true);
     assert.equal(seen.lookups, 0);
   }
   await noOverflow('card');

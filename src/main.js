@@ -7,6 +7,7 @@ import { draw, reasons } from './core/matcher.js';
 import { refill, spend, settle, canPull, rollRarity, todayString, PULL_COST } from './core/economy.js';
 import { loadState, saveState } from './core/store.js';
 import { loadCatalog } from './core/catalog.js';
+import { quoteFor } from './core/quotes.js';
 import { MachineScene, STAGE } from './scenes/MachineScene.js';
 import { h, chip, capitalise } from './ui/dom.js';
 import { createProfileSheet, describeProfile } from './ui/profile.js';
@@ -70,6 +71,7 @@ const machine = createMachine();
 // ---------------------------------------------------------------- sheets
 
 const card = createCardSheet($('card-dialog'), {
+  quoteFor: (item) => quoteFor(item, catalog?.quotes),
   isFavourite: (id) => state.favourites.includes(id),
   onFavourite: (id) => {
     state.favourites = state.favourites.includes(id)

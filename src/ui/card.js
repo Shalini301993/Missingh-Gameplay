@@ -2,7 +2,17 @@
 
 import { categoryById, rarityById, COLOURS, BUDGETS } from '../core/vocab.js';
 import { enrich, wikiUrl, webSearchUrl, shopSearchUrl } from '../core/catalog.js';
+import { quoteLines } from '../core/quotes.js';
 import { h, capitalise, openDialog, closeOnBackdrop } from './dom.js';
+
+function quoteBlock(quote) {
+  if (!quote) return null;
+  const lines = quoteLines(quote);
+  return h('figure', { class: 'quote' },
+    h('blockquote', {}, lines.map((line, i) => [line, i < lines.length - 1 ? h('br') : null])),
+    h('figcaption', {}, '— ', quote.author, ', ',
+      h('a', { href: quote.source, target: '_blank', rel: 'noopener', title: 'Read the whole work free' }, h('cite', {}, quote.work))));
+}
 
 // A picture frame that falls back to a typographic plate when there is no usable image.
 export function plate(item, { small = false, onImage } = {}) {
@@ -28,7 +38,7 @@ export function plate(item, { small = false, onImage } = {}) {
   return frame;
 }
 
-export function createCardSheet(dialog, { isFavourite, onFavourite }) {
+export function createCardSheet(dialog, { isFavourite, onFavourite, quoteFor = () => null }) {
   closeOnBackdrop(dialog);
 
   function open(item, { note, reasons = [], closeLabel = 'Back to the machine' } = {}) {
@@ -64,6 +74,7 @@ export function createCardSheet(dialog, { isFavourite, onFavourite }) {
           item.about && h('p', { class: 'about' }, item.about),
           note && h('p', { class: 'note' }, note),
           h('p', { class: 'blurb' }, item.blurb),
+          quoteBlock(quoteFor(item)),
           h('ul', { class: 'tags', 'aria-label': 'Tags' }, [...new Set(tags)].map((tag) => h('li', {}, tag))),
           reasons.length > 0 && h('p', { class: 'why' }, `Matched on: ${reasons.join(', ')}.`),
           h('div', { class: 'links' },

@@ -9,10 +9,11 @@ export async function loadCatalog() {
   // A catalog built with Wikipedia already holds every picture it could find, so only a
   // seeds-only catalog looks pictures up while playing.
   lookUpPictures = manifest.source === 'seeds';
-  const files = await Promise.all(
-    manifest.categories.map((c) => fetchJson(new URL(c.file, BASE)).catch(() => [])),
-  );
-  return { manifest, items: files.flat() };
+  const [files, quotes] = await Promise.all([
+    Promise.all(manifest.categories.map((c) => fetchJson(new URL(c.file, BASE)).catch(() => []))),
+    fetchJson(new URL('../quotes.json', BASE)).catch(() => []),
+  ]);
+  return { manifest, items: files.flat(), quotes };
 }
 
 async function fetchJson(url) {
