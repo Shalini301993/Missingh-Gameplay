@@ -123,8 +123,12 @@ const AVAILABLE = {
   ebay: () => true,
 };
 
-// Amazon first, then the shops that suit the object, for the player's region.
+// Amazon first, then the shops that suit the object, for the player's region. A small maker's
+// card goes straight to the maker's own shop instead.
 export function shopLinks(item, regionId = 'US') {
+  if (item.kind === 'maker' && item.site) {
+    return [{ id: 'maker', label: item.maker ?? item.title, note: "the maker's own shop", url: item.site }];
+  }
   const region = regionById(regionId);
   const q = searchQuery(item);
   const links = [SHOP.amazon(region, q)];

@@ -52,6 +52,11 @@ test('every card gets an Amazon link for its region, then shops that suit the ca
   assert.deepEqual(guitar.map((link) => link.id), ['amazon', 'thomann', 'ebay']);
 });
 
+test("a small maker's card goes straight to the maker's own shop", () => {
+  const maker = item({ title: 'Frost River', kind: 'maker', maker: 'Frost River', site: 'https://frostriver.com/', category: 'bags' });
+  assert.deepEqual(shopLinks(maker, 'IN'), [{ id: 'maker', label: 'Frost River', note: "the maker's own shop", url: 'https://frostriver.com/' }]);
+});
+
 test('every category and region gives at least two valid links', () => {
   for (const category of CATEGORY_IDS) {
     for (const region of REGIONS) {
@@ -99,7 +104,7 @@ test('hidden objects never come back, and favourites tilt the draw', () => {
 test('"goes well with" picks objects from other categories that share the feel', () => {
   const manifest = JSON.parse(readFileSync(new URL('../data/catalog/index.json', import.meta.url), 'utf8'));
   const items = manifest.categories.flatMap((c) => JSON.parse(readFileSync(new URL(`../data/catalog/${c.file}`, import.meta.url), 'utf8')));
-  const coat = items.find((entry) => entry.title === 'Trench coat');
+  const coat = items.find((entry) => entry.title === "Levi's 501"); // a seed, so always there
   const picks = pairings(coat, items);
   assert.equal(picks.length, 3);
   assert.equal(new Set(picks.map((p) => p.category)).size, 3);

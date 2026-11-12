@@ -46,7 +46,11 @@ export const RARITIES = [
   { id: 'legendary', label: 'Legendary', hex: '#c39a3b' },
 ];
 
-export const KINDS = ['iconic', 'generic'];
+export const KINDS = ['iconic', 'generic', 'artifact', 'maker'];
+export const KIND_LABELS = {
+  iconic: 'Brand or named object', generic: 'Rare kind of object', artifact: 'Traditional craft', maker: 'Small maker',
+};
+export const ORIGINS = { IN: 'India', US: 'USA' };
 
 export const CATEGORY_IDS = CATEGORIES.map((c) => c.id);
 export const COLOUR_IDS = COLOURS.map((c) => c.id);
@@ -84,5 +88,7 @@ export function itemProblems(item) {
   if (!RARITY_IDS.includes(item.rarity)) problems.push(`unknown rarity ${item.rarity}`);
   if (item.wiki != null && (typeof item.wiki !== 'string' || /\s/.test(item.wiki))) problems.push('bad wiki title');
   if (item.image != null && !/^https:\/\//.test(item.image)) problems.push('image must be https');
+  if (item.kind === 'maker' && !/^https:\/\/[^\s]+$/.test(item.site ?? '')) problems.push('a maker needs a shop website');
+  if (item.origin != null && !/^[A-Z]{2}$/.test(item.origin)) problems.push('bad origin');
   return problems;
 }

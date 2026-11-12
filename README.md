@@ -27,7 +27,7 @@ server.
 
 | | |
 |---|---|
-| **Odds** | Common, rare or legendary. A missed stop gives 5% legendary and 20% rare; a good stop 8% and 27%; a perfect stop 14% and 36%. |
+| **Odds** | Common, rare or legendary; the rarer the capsule, the less-known the object. A missed stop gives 5% legendary and 20% rare; a good stop 8% and 27%; a perfect stop 14% and 36%. |
 | **Combo** | Each good or perfect stop in a row adds to your combo, which adds experience. The needle speeds up and the gold narrows as the combo grows. A miss breaks it. |
 | **Fever** | Every pull fills the fever meter, perfect stops and new finds fastest. When it is full, the next 3 pulls are rare or better. |
 | **Levels** | Pulls earn experience (more for rarer, newer and more skilful finds). Each new collector level pays 2 tokens. |
@@ -96,15 +96,31 @@ Either way the game appears at `https://<your-user>.github.io/<repository>/` a m
 
 ## The catalog
 
-The catalog lives in `data/catalog/`, one file per category. It is built from two places:
+The catalog lives in `data/catalog/`, one file per category. It favours the unusual: rare kinds of
+things, named brands and products, traditional crafts, and small independent makers, rather than
+everyday objects. Every object is one of four kinds, shown on its card:
 
-- **Seeds** (`data/seeds/*.json`) – about 150 hand-written, hand-tagged objects. Edit these files to
-  add your own.
+| Kind | What it is | Example |
+|---|---|---|
+| Traditional craft | A craft or artifact, mostly from India (geographical-indication crafts, handlooms, instruments) and the USA (Native American and folk crafts, quilts, pottery) | Bidriware, Kanchipuram silk sari, Shaker box |
+| Small maker | A small independent business from the USA or India, linked to its own shop | Frost River (Duluth), Bhavya Ramesh (Jaipur) |
+| Brand or named object | A specific product or brand | Chanel No. 5, Hindustan Ambassador |
+| Rare kind of object | An uncommon kind of thing | Theremin, monocle, penny-farthing |
+
+It is built from two places:
+
+- **Seeds** (`data/seeds/*.json`) – hand-written objects, including the small makers. Each maker
+  entry has the maker's own `site`, an `origin` (`US` or `IN`) and a description drawn from what
+  the maker's website says about itself. Edit these files to add your own.
 - **Wikipedia** – `scripts/catalog/build.mjs` runs the searches listed in
   `scripts/catalog/sources.json`, keeps pages that are objects (not people, companies, places,
-  events or anything unsuitable for an all-ages game), tags them by keyword, and takes turns across
-  the sources so each one is represented. Within a category the most-read pages become legendary
-  and rare.
+  foods, events or anything unsuitable for an all-ages game), tags them by keyword, and takes turns
+  across the sources so each one is represented. Among plain "kinds of thing", the most-read half
+  are left out as everyday objects (`genericKeepShare`).
+
+Rarity follows obscurity: within each category, the least-read Wikipedia pages are legendary and
+the next least-read are rare, so a legendary capsule holds a true curiosity. Small makers, which
+have no Wikipedia page, are always rare.
 
 The *Build catalog* workflow runs the generator on GitHub and commits the result. It runs only when
 you start it (**Actions → Build catalog → Run workflow**), so the catalog changes only when you ask
@@ -118,13 +134,29 @@ entries afterwards and exclude anything that does not belong (see below).
 ```bash
 node scripts/catalog/build.mjs            # seeds + Wikipedia (needs internet)
 node scripts/catalog/build.mjs --offline  # seeds only
-node scripts/catalog/build.mjs --refilter # re-apply the rules to the existing catalog, no internet
+node scripts/catalog/build.mjs --refilter # re-apply the rules, corrections and current seeds, no internet
 node scripts/catalog/validate.mjs         # check the catalog files
 ```
 
 Spotted something that should not be there? Add its Wikipedia page title to the `exclude` list at
 the top of `sources.json` and run `--refilter` (or run the workflow with *mode* set to *refilter*,
 which takes seconds); it is removed straight away and stays out of future builds.
+
+Something in the wrong category, or labelled with the wrong kind or country? Add it to
+`corrections`, under its Wikipedia page title, with the `category`, `kind` or `origin` it should
+have (`null` removes an origin):
+
+```json
+"corrections": {
+  "Mysore Sandalwood Oil": {"category": "perfumes"},
+  "Stetson": {"kind": "iconic"},
+  "Siddhartha (novel)": {"origin": null}
+}
+```
+
+Corrections apply to every build and every `--refilter`. A refilter also re-checks each item
+against the `require` and `drop` patterns of the sources that could have found it (those with the
+same kind and origin), so tightening a source takes effect without a rebuild.
 
 ### Adding sources
 
@@ -160,7 +192,7 @@ box.
 ### Why a build takes a while
 
 Wikipedia limits how fast scripts that do not identify themselves may ask. The build asks for
-50 pages at a time, waits whenever it is told to slow down, and stops cleanly after 40 minutes with
+50 pages at a time, waits whenever it is told to slow down, and stops cleanly after 75 minutes with
 whatever it has collected. A build that comes back much smaller than the existing catalog is
 discarded rather than committed.
 

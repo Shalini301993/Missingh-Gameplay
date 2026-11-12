@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createApi, OutOfTime, sourceQuery, rejectReason, guessKind, tagItem, tidyBlurb, pickBalanced, assignRarity,
-  displayTitle, properTitle, familyOf, loadSeeds, build, reportMarkdown,
+  displayTitle, properTitle, familyOf, loadSeeds, build, reportMarkdown, loadConfig, prepareConfig, refilter,
 } from '../scripts/catalog/build.mjs';
 import { validateCatalog } from '../scripts/catalog/validate.mjs';
 import { itemProblems, slugify, CATEGORY_IDS } from '../src/core/vocab.js';
@@ -179,7 +179,7 @@ test('rarity is assigned by score', () => {
 
 test('seeds are all valid, unique and cover every category', async () => {
   const seeds = await loadSeeds();
-  assert.ok(seeds.length >= 140, `only ${seeds.length} seeds`);
+  assert.ok(seeds.length >= 70, `only ${seeds.length} seeds`);
   const ids = new Set();
   for (const seed of seeds) {
     assert.deepEqual(itemProblems(seed), [], seed.id);
@@ -188,6 +188,10 @@ test('seeds are all valid, unique and cover every category', async () => {
     assert.ok(seed.vibes.length && seed.moods.length && seed.colours.length, `${seed.id} needs tags`);
   }
   for (const id of CATEGORY_IDS) assert.ok(seeds.some((s) => s.category === id), `no seeds for ${id}`);
+  const makers = seeds.filter((s) => s.kind === 'maker');
+  assert.ok(makers.length >= 50, `${makers.length} makers`);
+  assert.ok(makers.every((m) => ['US', 'IN'].includes(m.origin) && m.site.startsWith('https://') && m.about), 'makers are from the USA or India, with a site and description');
+  assert.equal(new Set(makers.map((m) => m.site)).size, makers.length, 'each maker once');
   assert.equal(slugify('Citroën 2CV'), 'citroen-2cv');
 });
 
@@ -261,7 +265,7 @@ function fakeWikipedia() {
     },
     async search() {
       // One description that names something every category asks for.
-      const words = 'garment shoe perfume novel bag luggage scarf hat jewel glasses diamond watch toy bicycle device chair lamp pot rug guitar';
+      const words = 'garment sari shoe perfume attar novel bag basket luggage scarf hat jewel necklace glasses diamond watch clock toy doll bicycle car Tata American boat phone device chair lamp pot pottery rug guitar instrument';
       const base = serial * 10;
       serial += 1;
       // Each title starts with its own word, so none of them count as one family.
@@ -287,13 +291,17 @@ test('a full build against a fake Wikipedia yields a valid catalog', async () =>
   assert.equal(new Set(items.map((i) => i.id)).size, items.length);
   assert.equal(items.filter((i) => i.title === 'Chanel No. 5').length, 1, 'seed wins over a duplicate page');
   assert.equal(items.find((i) => i.id === 'perfumes/chanel-no-5').image, 'https://img/seed.jpg');
-  assert.ok(report.every((row) => row.rejected.person === 1 && row.rejected.duplicate === 1 && row.kept === 2 && row.picked === 2));
+  assert.ok(report.every((row) => row.rejected.person === 1 && row.rejected.duplicate === 1));
+  // Two pages survive each search; generic ones may then be dropped as everyday objects.
+  assert.ok(report.every((row) => row.kept + (row.rejected.everyday ?? 0) === 2 && row.picked === row.kept));
+  assert.ok(report.some((row) => row.rejected.everyday), 'the most-read generic pages are dropped');
   const generated = items.filter((i) => i.source === 'wikipedia');
   assert.ok(generated.some((i) => i.blurb.startsWith('Opening text from the search index')));
   assert.ok(generated.some((i) => i.blurb.startsWith('Fetched intro for page')), 'intro text is fetched when the search has none');
   assert.ok(generated.some((i) => i.rarity === 'legendary') && generated.some((i) => i.rarity === 'common'));
+  assert.ok(!items.some((i) => 'popularity' in i), 'readership is not stored');
   assert.ok(!items.some((i) => 'score' in i || 'popularity' in i));
-  assert.ok(generated.every((i) => i.about.startsWith('Garment shoe')), 'the short description is kept as "about"');
+  assert.ok(generated.every((i) => i.about.startsWith('Garment sari shoe')), 'the short description is kept as "about"');
   const markdown = reportMarkdown([{ id: 'toys', count: 3 }], report, { requests: 9, limited: 1, waitedMs: 120000 });
   assert.match(markdown, /# Catalog build: 3 items/);
   assert.match(markdown, /told to slow down 1 times, waited 2 min/);
@@ -314,6 +322,90 @@ test('a build that runs out of time still finishes with what it has', async () =
   assert.ok(report.some((row) => row.note === 'skipped: out of time'));
   // The first source of every category was reached before time ran out.
   for (const id of CATEGORY_IDS) assert.ok(catalog.get(id).some((item) => item.source === 'wikipedia'), id);
+});
+
+test('corrections in sources.json are checked when they are read', async () => {
+  const config = await loadConfig();
+  assert.ok(config.corrections.size > 0 && config.excluded.size > 0);
+  for (const fix of config.corrections.values()) assert.ok(Object.keys(fix).length > 0);
+  const bad = (fix) => () => prepareConfig({ corrections: { Thing: fix } });
+  assert.throws(bad({ category: 'hats' }), /correction for "Thing"/);
+  assert.throws(bad({ kind: 'maker' }), /kind/);
+  assert.throws(bad({ origin: 'India' }), /origin/);
+  assert.throws(bad({ colour: 'red' }), /colour/);
+  assert.throws(bad({}), /changes nothing/);
+  assert.equal(prepareConfig({ corrections: { Thing: { origin: null } } }).corrections.get('thing').origin, null);
+});
+
+test('a correction moves a page to another category and fixes its kind and origin', async () => {
+  const config = await loadConfig();
+  // The first search of the fake Wikipedia is clothing's, and its first page is "Famba famous thing".
+  config.corrections.set('famba famous thing', { category: 'toys', kind: 'artifact', origin: 'US' });
+  config.corrections.set('plaba plain thing', { origin: null });
+  const { catalog, report } = await build({ api: fakeWikipedia(), log: () => {}, config });
+  const items = [...catalog.values()].flat();
+  const moved = items.find((item) => item.wiki === 'Famba_famous_thing');
+  assert.equal(moved.category, 'toys');
+  assert.equal(moved.id, 'toys/famba-famous-thing');
+  assert.equal(moved.kind, 'artifact');
+  assert.equal(moved.origin, 'US');
+  const plain = items.find((item) => item.wiki === 'Plaba_plain_thing');
+  assert.equal(plain.category, 'clothing');
+  assert.ok(!('origin' in plain), 'origin removed');
+  assert.match(report[0].note, /1 moved/);
+});
+
+test('re-filtering applies the current sources, exclusions, corrections and seeds', async () => {
+  const base = { blurb: 'A thing.', image: 'https://img/x.jpg', vibes: [], moods: [], colours: [], budget: 'treat', rarity: 'common', source: 'wikipedia' };
+  const item = (category, title, extra = {}) => ({
+    ...base, id: `${category}/${slugify(title)}`, title, category, wiki: title.replace(/ /g, '_'), kind: 'iconic', about: 'Motor car', ...extra,
+  });
+  const config = prepareConfig({
+    exclude: ['Bad thing'],
+    corrections: { 'Moved thing': { category: 'home', kind: 'generic' } },
+    categories: {
+      vehicles: { sources: [
+        { cats: ['Cars of India'], kind: 'iconic', origin: 'IN', require: 'Tata' },
+        { template: 'Infobox automobile', kind: 'iconic' },
+      ] },
+      toys: { sources: [{ cats: ['Toys'], kind: 'generic' }] },
+    },
+  });
+  const seed = { ...base, id: 'toys/seeded', title: 'Seeded', category: 'toys', wiki: 'Seeded_page', kind: 'generic', rarity: 'legendary', source: 'seed', popularity: 3 };
+  const current = new Map([
+    ['vehicles', [
+      item('vehicles', 'Audi A4', { origin: 'IN', about: 'Compact executive car' }),
+      item('vehicles', 'Tata Nano', { origin: 'IN', about: 'City car made by Tata Motors' }),
+      item('vehicles', 'Toyota Hilux', { about: 'Pickup truck' }),
+    ]],
+    ['toys', [
+      item('toys', 'Moved thing', { kind: 'generic', about: 'Wooden toy', rarity: 'rare' }),
+      item('toys', 'Bad thing', { kind: 'generic', about: 'Wooden toy' }),
+      item('toys', 'Copy of the seed', { kind: 'generic', about: 'Wooden toy', wiki: 'Seeded_page' }),
+      { ...seed, rarity: 'rare' },
+    ]],
+  ]);
+  const logs = [];
+  const catalog = await refilter({ config, seeds: [seed], current, log: (line) => logs.push(line) });
+  const titles = (id) => catalog.get(id).map((entry) => entry.title);
+  assert.deepEqual(titles('vehicles'), ['Tata Nano', 'Toyota Hilux'], 'a source that no longer takes it removes it');
+  assert.deepEqual(titles('toys'), ['Seeded'], 'excluded, moved and seed-covered pages leave');
+  assert.equal(catalog.get('toys')[0].rarity, 'rare', 'a seed keeps the rarity of the last full build');
+  assert.ok(!('popularity' in catalog.get('toys')[0]));
+  const moved = catalog.get('home')[0];
+  assert.deepEqual([moved.id, moved.category, moved.kind, moved.rarity], ['home/moved-thing', 'home', 'generic', 'rare']);
+  assert.ok(logs.some((line) => /removing Audi A4 \(vehicles\): source-require/.test(line)));
+  assert.ok(logs.some((line) => /removing Bad thing \(toys\): excluded/.test(line)));
+  assert.ok(logs.some((line) => /moving Moved thing from toys to home/.test(line)));
+});
+
+test('small makers need a shop website, and origins are country codes', () => {
+  const base = { id: 'bags/x', title: 'X', kind: 'maker', category: 'bags', blurb: 'b', vibes: [], moods: [], colours: [], budget: 'treat', rarity: 'rare' };
+  assert.deepEqual(itemProblems({ ...base, site: 'https://x.example/' }), []);
+  assert.ok(itemProblems(base).includes('a maker needs a shop website'));
+  assert.ok(itemProblems({ ...base, site: 'http://x.example/' }).includes('a maker needs a shop website'));
+  assert.ok(itemProblems({ ...base, site: 'https://x.example/', origin: 'India' }).includes('bad origin'));
+  assert.deepEqual(itemProblems({ ...base, kind: 'artifact', origin: 'IN' }), []);
 });
 
 test('the committed catalog is valid', async () => {
