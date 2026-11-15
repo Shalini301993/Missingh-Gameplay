@@ -76,7 +76,7 @@
 
   <footer class="colophon">
     <p id="catalog-note"></p>
-    <p>Descriptions and images come from <a href="https://en.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> and Wikimedia Commons under their own licences. Quotes are from public-domain works on Project Gutenberg and Wikisource. The music is original and made in your browser as you play. Shop links open a search on each shop. Your likes and collection are stored only in this browser.</p>
+    <p>Descriptions and images come from <a href="https://en.wikipedia.org/" target="_blank" rel="noopener">Wikipedia</a> and Wikimedia Commons under their own licences. Quotes are from public-domain works on Project Gutenberg and Wikisource. The music is original and made in your browser as you play. Shop links open a search on each shop. Your likes and collection are stored only in this browser. An anonymous, cookie-free counter (GoatCounter) records visits and plays.</p>
   </footer>
 
   <dialog id="profile-dialog" class="sheet" aria-labelledby="profile-title"></dialog>
@@ -86,5 +86,25 @@
   <noscript><p class="noscript">Curio Capsule needs JavaScript to run.</p></noscript>
   <script src="vendor/phaser.min.js"></script>
   <script type="module" src="src/main.js"></script>
+
+  <!-- Visitor counter (GoatCounter). Stats: https://belladonnaoflav.goatcounter.com/ -->
+  <script>
+    // Count a "played" event the first time someone pulls the lever on each visit.
+    (function () {
+      var pull = document.getElementById('pull');
+      if (!pull) return;
+      function played() {
+        pull.removeEventListener('click', played);
+        document.removeEventListener('keydown', onKey);
+        if (window.goatcounter && window.goatcounter.count) {
+          window.goatcounter.count({ path: 'played', title: 'Played the game', event: true });
+        }
+      }
+      function onKey(e) { if (e.code === 'Space' && !pull.disabled) played(); }
+      pull.addEventListener('click', played);
+      document.addEventListener('keydown', onKey);
+    })();
+  </script>
+  <script data-goatcounter="https://belladonnaoflav.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
